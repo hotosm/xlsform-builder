@@ -3,14 +3,16 @@ import { computed } from 'vue'
 
 const props = defineProps<{
   title: string,
+  location: string,
   description: string,
   tags: string[],
-  url: string
+  url: string,
+  external_link: string,
 }>()
 
 const xlsformViewerUrl = computed(() => {
   if (!props.url) return ''
-  return `https://xlsforms.fmtm.dev?url=${props.url}`
+  return `https://xlsform-editor.fmtm.hotosm.org?url=${props.url}`
 })
 </script>
 
@@ -25,6 +27,8 @@ const xlsformViewerUrl = computed(() => {
     <a :href="xlsformViewerUrl">Open form</a>
     <br>
     <a :href="url">Download form</a>
+    <br>
+    <a v-if="external_link != ''" :href="external_link">External reference</a>
   </div>
 </template>
 

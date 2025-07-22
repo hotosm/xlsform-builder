@@ -9,9 +9,7 @@ import FormExamples from './pages/FormExamples.vue'
 import FormUpload from './pages/FormUpload.vue'
 import NotFound from './pages/NotFound.vue'
 
-import FormRecord from './components/FormRecord.vue'
-
-const routes = {
+const routes: Record<string, any> = {
   '/': FormExamples,
   '/builder': FormBuilder,
   '/upload': FormUpload,
@@ -21,19 +19,19 @@ const headerTabs = [
   {
     label: 'Examples',
     clickEvent: async () => {
-      window.location = "#/"
+      window.location.hash = "/"
     }
   },
   {
     label: 'Builder',
     clickEvent: async () => {
-      window.location = "#/builder"
+      window.location.hash = "/builder"
     }
   },
   {
     label: 'Upload',
     clickEvent: async () => {
-      window.location = "#/upload"
+      window.location.hash = "/upload"
     }
   },
 ]

@@ -4,7 +4,15 @@ import { ref, onMounted } from 'vue'
 import FormRecord from '../components/FormRecord.vue'
 
 // Handle forms
-const forms = ref([])
+interface FormRecord {
+  title: string
+  location: string
+  description: string
+  tags: string[]
+  url: string
+  external_link: string
+}
+const forms = ref<FormRecord[]>([])
 const formsUrl = 'https://xlsforms.s3.amazonaws.com/metadata.json'
 
 onMounted(async () => {
@@ -29,6 +37,7 @@ onMounted(async () => {
       :description="form.description"
       :tags="form.tags"
       :url="form.url"
+      :external_link="form.external_link"
     />
   </div>
 </template>
