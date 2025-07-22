@@ -37,9 +37,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+        # Version is specified in package.json packageManager key
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
