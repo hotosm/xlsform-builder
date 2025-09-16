@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@awesome.me/webawesome": "3.0.0-beta.3",
-    "@hotosm/ui": "0.3.2-b9",
+    "@hotosm/ui": "0.3.4b2",
     "vue": "^3.5.17"
   },
   "devDependencies": {
