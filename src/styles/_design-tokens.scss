@@ -1,0 +1,273 @@
+// Font Face Declarations
+@font-face {
+  font-family: 'BarlowCondensed-Bold';
+  src: url('/fonts/BarlowCondensed-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BarlowCondensed-SemiBold';
+  src: url('/fonts/BarlowCondensed-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BarlowCondensed-Regular';
+  src: url('/fonts/BarlowCondensed-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BarlowCondensed-Light';
+  src: url('/fonts/BarlowCondensed-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BarlowCondensed-Thin';
+  src: url('/fonts/BarlowCondensed-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BarlowCondensed-ExtraBold';
+  src: url('/fonts/BarlowCondensed-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BarlowCondensed-ExtraLight';
+  src: url('/fonts/BarlowCondensed-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BarlowCondensed-Medium';
+  src: url('/fonts/BarlowCondensed-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Archivo-Regular';
+  src: url('/fonts/Archivo-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Archivo-SemiBold';
+  src: url('/fonts/Archivo-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-display: swap;
+}
+
+// Font Variables
+$font-barlow-bold: 'BarlowCondensed-Bold', sans-serif;
+$font-barlow-semibold: 'BarlowCondensed-SemiBold', sans-serif;
+$font-base: 'Archivo-Regular', sans-serif;
+$font-base-semibold: 'Archivo-SemiBold', sans-serif;
+$font-barlow-regular: 'BarlowCondensed-Regular', sans-serif;
+$font-barlow-light: 'BarlowCondensed-Light', sans-serif;
+$font-barlow-thin: 'BarlowCondensed-Thin', sans-serif;
+$font-barlow-extra-bold: 'BarlowCondensed-ExtraBold', sans-serif;
+$font-barlow-extra-light: 'BarlowCondensed-ExtraLight', sans-serif;
+$font-barlow-medium: 'BarlowCondensed-Medium', sans-serif;
+
+// Font Size Variables
+$font-size-2x-small: var(--hot-font-size-2x-small);
+$font-size-x-small: var(--hot-font-size-x-small);
+$font-size-small: var(--hot-font-size-small);
+$font-size-medium: var(--hot-font-size-medium);
+$font-size-large: var(--hot-font-size-large);
+$font-size-x-large: var(--hot-font-size-x-large);
+$font-size-2x-large: var(--hot-font-size-2x-large);
+$font-size-3x-large: var(--hot-font-size-3x-large);
+$font-size-4x-large: var(--hot-font-size-4x-large);
+
+// Font Weight Variables
+$font-weight-light: var(--hot-font-weight-light);
+$font-weight-normal: var(--hot-font-weight-normal);
+$font-weight-semibold: var(--hot-font-weight-semibold);
+$font-weight-bold: var(--hot-font-weight-bold);
+
+// Letter Spacing Variables
+$letter-spacing-denser: var(--hot-letter-spacing-denser);
+$letter-spacing-dense: var(--hot-letter-spacing-dense);
+$letter-spacing-normal: var(--hot-letter-spacing-normal);
+$letter-spacing-loose: var(--hot-letter-spacing-loose);
+$letter-spacing-looser: var(--hot-letter-spacing-looser);
+
+// Line Height Variables
+$line-height-denser: var(--hot-line-height-denser);
+$line-height-dense: var(--hot-line-height-dense);
+$line-height-normal: var(--hot-line-height-normal);
+$line-height-loose: var(--hot-line-height-loose);
+$line-height-looser: var(--hot-line-height-looser);
+
+// Color Variables
+$color-bg-primary: var(--hot-color-neutral-50);
+$color-bg-surface: var(--hot-color-neutral-100);
+$color-text-primary: var(--hot-color-neutral-700);
+$color-text-heading: var(--hot-color-neutral-800);
+$color-link: var(--hot-color-primary-700);
+$color-border: var(--hot-color-neutral-200);
+$color-border-light: var(--hot-color-neutral-300);
+
+// Action Button Colors
+$color-primary-bg: var(--hot-color-primary-500);
+$color-primary-bg-hover: var(--hot-color-primary-600);
+$color-primary-text: var(--hot-color-neutral-1000);
+$color-secondary-bg: var(--hot-color-neutral-100);
+$color-secondary-bg-hover: var(--hot-color-neutral-200);
+$color-secondary-text: var(--hot-color-neutral-700);
+$color-secondary-border: var(--hot-color-neutral-300);
+$color-secondary-border-hover: var(--hot-color-neutral-400);
+$color-external-bg: transparent;
+$color-external-bg-hover: var(--hot-color-primary-50);
+$color-external-text: var(--hot-color-primary-600);
+$color-external-text-hover: var(--hot-color-primary-700);
+$color-external-text-active: var(--hot-color-primary-800);
+$color-focus-outline: var(--hot-color-primary-500);
+
+// Spacing Variables
+$spacing-xs: var(--hot-spacing-2x-small);
+$spacing-sm: var(--hot-spacing-x-small);
+$spacing-md: var(--hot-spacing-medium);
+$spacing-lg: var(--hot-spacing-large);
+$spacing-xl: var(--hot-spacing-x-large);
+
+// Layout Variables
+$border-radius: var(--hot-border-radius-large);
+$container-padding: 10%;
+$shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+// Breakpoints
+$bp-sm: 375px;
+$bp-md: 600px;
+$bp-lg: 900px;
+$bp-xl: 1200px;
+$bp-xxl: 1600px;
+
+// Responsive breakpoint mixin
+@mixin bp($breakpoint) {
+  @if $breakpoint == sm {
+    @media (min-width: #{$bp-sm}) {
+      @content;
+    }
+  }
+  @if $breakpoint == md {
+    @media (min-width: #{$bp-md}) {
+      @content;
+    }
+  }
+  @if $breakpoint == lg {
+    @media (min-width: #{$bp-lg}) {
+      @content;
+    }
+  }
+  @if $breakpoint == xl {
+    @media (min-width: #{$bp-xl}) {
+      @content;
+    }
+  }
+  @if $breakpoint == xxl {
+    @media (min-width: #{$bp-xxl}) {
+      @content;
+    }
+  }
+}
+
+// Card mixin for consistent card styling
+@mixin card-base($max-width: null) {
+  border-radius: $border-radius;
+  border: 1px solid $color-border;
+  box-shadow: $shadow-light;
+  width: 100%;
+  height: 100%;
+
+  @if $max-width {
+    max-width: $max-width;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+// Spacing utilities
+.mb-0 {
+  margin-bottom: 0;
+}
+.mb-1 {
+  margin-bottom: $spacing-sm;
+}
+.mb-2 {
+  margin-bottom: $spacing-md;
+}
+.mb-3 {
+  margin-bottom: $spacing-lg;
+}
+.mb-4 {
+  margin-bottom: $spacing-xl;
+}
+
+.mt-0 {
+  margin-top: 0;
+}
+.mt-1 {
+  margin-top: $spacing-sm;
+}
+.mt-2 {
+  margin-top: $spacing-md;
+}
+.mt-3 {
+  margin-top: $spacing-lg;
+}
+.mt-4 {
+  margin-top: $spacing-xl;
+}
+
+.p-1 {
+  padding: $spacing-sm;
+}
+.p-2 {
+  padding: $spacing-md;
+}
+.p-3 {
+  padding: $spacing-lg;
+}
+.p-4 {
+  padding: $spacing-xl;
+}
+
+.px-1 {
+  padding-left: $spacing-sm;
+  padding-right: $spacing-sm;
+}
+.px-2 {
+  padding-left: $spacing-md;
+  padding-right: $spacing-md;
+}
+.px-3 {
+  padding-left: $spacing-lg;
+  padding-right: $spacing-lg;
+}
+
+.py-1 {
+  padding-top: $spacing-sm;
+  padding-bottom: $spacing-sm;
+}
+.py-2 {
+  padding-top: $spacing-md;
+  padding-bottom: $spacing-md;
+}
+.py-3 {
+  padding-top: $spacing-lg;
+  padding-bottom: $spacing-lg;
+}

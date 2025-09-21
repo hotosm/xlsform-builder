@@ -1,0 +1,44 @@
+@import '@hotosm/ui/dist/style.css';
+@import './_design-tokens.scss';
+
+// Global Base Styles
+html {
+  overflow-x: hidden;
+  overscroll-behavior: none;
+}
+
+.container {
+  padding: $spacing-md;
+  background-color: $color-bg-primary;
+  min-height: 100vh;
+  font-family: $font-base;
+
+  @include bp(md) {
+    padding: $spacing-lg;
+  }
+}
+
+// Global heading styles
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: $font-barlow-bold;
+  color: $color-text-heading;
+}
+
+hot-header {
+  font-family: $font-barlow-light;
+}
+
+// Global link styles
+a {
+  color: $color-link;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
