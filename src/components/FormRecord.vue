@@ -21,6 +21,21 @@ const xlsformViewerUrl = computed(() => {
 const hasExternalLink = computed(() => {
   return props.external_link && props.external_link.trim() !== '';
 });
+
+function openForm() {
+  window.open(xlsformViewerUrl.value, '_blank', 'noopener,noreferrer');
+}
+
+function downloadForm() {
+  const link = document.createElement('a');
+  link.href = props.url;
+  link.download = '';
+  link.click();
+}
+
+function openExternalLink() {
+  window.open(props.external_link, '_blank', 'noopener,noreferrer');
+}
 </script>
 
 <template>
@@ -49,21 +64,14 @@ const hasExternalLink = computed(() => {
           <wa-button
             variant="primary"
             class="card-actions-button"
-            @click="() => window.open(xlsformViewerUrl, '_blank', 'noopener,noreferrer')"
+            @click="openForm"
           >
             Open Form
           </wa-button>
           <wa-button
             variant="neutral"
             class="card-actions-button"
-            @click="
-              () => {
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = '';
-                link.click();
-              }
-            "
+            @click="downloadForm"
           >
             Download Form
           </wa-button>
@@ -71,7 +79,7 @@ const hasExternalLink = computed(() => {
             v-if="hasExternalLink"
             variant="text"
             class="card-actions-button"
-            @click="() => window.open(external_link, '_blank', 'noopener,noreferrer')"
+            @click="openExternalLink"
           >
             External Reference
           </wa-button>
