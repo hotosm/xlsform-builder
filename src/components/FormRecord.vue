@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 
 import '@awesome.me/webawesome/dist/components/badge/badge.js';
+import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/card/card.js';
 
 const props = defineProps<{
@@ -61,18 +62,10 @@ function openExternalLink() {
         </div>
 
         <div class="card-actions">
-          <wa-button
-            variant="primary"
-            class="card-actions-button"
-            @click="openForm"
-          >
+          <wa-button variant="primary" class="card-actions-button" @click="openForm">
             Open Form
           </wa-button>
-          <wa-button
-            variant="neutral"
-            class="card-actions-button"
-            @click="downloadForm"
-          >
+          <wa-button variant="neutral" class="card-actions-button" @click="downloadForm">
             Download Form
           </wa-button>
           <wa-button

@@ -1,1 +1,28 @@
-<template>Under construction...</template>
+<script setup lang="ts">
+import '@hotosm/ui/dist/components/file-input-dropzone/file-input-dropzone.js';
+
+import { isMobileDevice } from '@/utils/deviceDetection';
+
+const isMobile = isMobileDevice();
+</script>
+
+<template>
+  <div class="upload-page">
+    <h2>Upload Form</h2>
+
+    <hot-file-input-dropzone
+      label="Choose XLS or XLSX file (max 100 MB)"
+      :variant="isMobile ? 'compact' : 'traditional'"
+      accept=".xls, .xlsx"
+      showPreview
+      :maxSize="100 * 1000 * 1000"
+    ></hot-file-input-dropzone>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.upload-page {
+  max-width: 50rem;
+  margin: 0 auto;
+}
+</style>
