@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import '@hotosm/ui/dist/components/file-input-dropzone/file-input-dropzone.js';
+import '@webawesome/button/button.js';
+import '@webawesome/dialog/dialog.js';
+import '@webawesome/icon/icon.js';
+import '@webawesome/input/input.js';
+import '@webawesome/textarea/textarea.js';
 
 import { isMobileDevice } from '@/utils/deviceDetection';
 

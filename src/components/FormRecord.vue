@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import '@awesome.me/webawesome/dist/components/badge/badge.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
-import '@awesome.me/webawesome/dist/components/card/card.js';
+import '@webawesome/badge/badge.js';
+import '@webawesome/button/button.js';
+import '@webawesome/card/card.js';
 
 const props = defineProps<{
   title: string;
