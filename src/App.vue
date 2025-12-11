@@ -11,28 +11,28 @@ import NotFound from './pages/NotFound.vue';
 import '/src/styles/main.scss';
 
 const routes: Record<string, any> = {
-  '/': FormExamples,
+  '/': FormUpload,
+  '/examples': FormExamples,
   '/builder': FormBuilder,
-  '/upload': FormUpload,
 };
 
 const headerTabs = [
   {
-    label: 'Examples',
+    label: 'Upload',
     clickEvent: async () => {
       window.location.hash = '/';
+    },
+  },
+  {
+    label: 'Examples',
+    clickEvent: async () => {
+      window.location.hash = '/examples';
     },
   },
   {
     label: 'Builder',
     clickEvent: async () => {
       window.location.hash = '/builder';
-    },
-  },
-  {
-    label: 'Upload',
-    clickEvent: async () => {
-      window.location.hash = '/upload';
     },
   },
 ];
