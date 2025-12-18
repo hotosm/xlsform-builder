@@ -40,18 +40,20 @@ type PreSignedDownloadResponse struct {
 }
 
 var (
-	s3Client      *s3.Client
-	bucketName    string
-	region        string
-	s3Endpoint    string
-	usePathStyle  bool
+	s3Client        *s3.Client
+	bucketName      string
+	region          string
+	minioEndpoint   string  
+	minioPublicURL  string 
+	usePathStyle    bool
 )
 
 func main() {
 	bucketName = getEnv("S3_BUCKET_NAME", "xlsforms")
 	region = getEnv("AWS_REGION", "us-east-1")
-	s3Endpoint = os.Getenv("S3_ENDPOINT") // Optional: for MinIO or custom S3 endpoint
-	usePathStyle = getEnv("S3_USE_PATH_STYLE", "false") == "true"
+	minioEndpoint = os.Getenv("MINIO_ENDPOINT")      
+	minioPublicURL = os.Getenv("MINIO_PUBLIC_URL")   
+	usePathStyle = getEnv("USE_PATH_STYLE", "false") == "true"
 	port := getEnv("PORT", "3000")
 
 	if err := initS3Client(); err != nil {
@@ -76,8 +78,13 @@ func main() {
 	handler := c.Handler(mux)
 
 	log.Printf("Starting server on port %s", port)
-	log.Printf("S3 Bucket: %s", bucketName)
-	log.Printf("AWS Region: %s", region)
+	log.Printf("Bucket: %s", bucketName)
+	log.Printf("Region: %s", region)
+	if minioEndpoint != "" {
+		log.Printf("Using MinIO at: %s", minioEndpoint)
+	} else {
+		log.Printf("Using AWS S3")
+	}
 
 	if err := http.ListenAndServe(":" + port, handler); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
@@ -86,7 +93,6 @@ func main() {
 
 func initS3Client() error {
 	ctx := context.Background()
-
 	accessKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
 	secretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 
@@ -113,14 +119,15 @@ func initS3Client() error {
 	}
 
 	s3Client = s3.NewFromConfig(cfg, func(o *s3.Options) {
-		if s3Endpoint != "" {
-			o.BaseEndpoint = aws.String(s3Endpoint)
+		if minioEndpoint != "" {
+			o.BaseEndpoint = aws.String(minioEndpoint)
 		}
 		o.UsePathStyle = usePathStyle
 	})
 
 	return nil
 }
+
 
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -152,10 +159,9 @@ func presignedUploadURLHandler(w http.ResponseWriter, r *http.Request) {
 	s3Key := fileName
 
 	presignClient := s3.NewPresignClient(s3Client, func(po *s3.PresignOptions) {
-		if s3Endpoint != "" {
-			externalEndpoint := getEnv("S3_EXTERNAL_ENDPOINT", s3Endpoint)
+		if minioPublicURL != "" {
 			po.ClientOptions = append(po.ClientOptions, func(o *s3.Options) {
-				o.BaseEndpoint = aws.String(externalEndpoint)
+				o.BaseEndpoint = aws.String(minioPublicURL)
 			})
 		}
 	})
@@ -175,9 +181,8 @@ func presignedUploadURLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var fileURL string
-	if s3Endpoint != "" {
-		externalEndpoint := getEnv("S3_EXTERNAL_ENDPOINT", s3Endpoint)
-		fileURL = fmt.Sprintf("%s/%s/%s", externalEndpoint, bucketName, s3Key)
+	if minioPublicURL != "" {
+		fileURL = fmt.Sprintf("%s/%s/%s", minioPublicURL, bucketName, s3Key)
 	} else {
 		fileURL = fmt.Sprintf("https://%s.s3.amazonaws.com/%s", bucketName, s3Key)
 	}
