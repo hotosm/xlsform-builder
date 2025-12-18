@@ -5,16 +5,7 @@ import '@webawesome/button/button.js';
 
 import FormRecord from '../components/FormRecord.vue';
 
-// Handle forms
-interface FormData {
-  title: string;
-  location: string;
-  description: string;
-  tags: string[];
-  url: string;
-  external_link: string;
-}
-const forms = ref<FormData[]>([]);
+const forms = ref<FormMetadata[]>([]);
 const formsUrl =
   import.meta.env.VITE_METADATA_URL || 'https://xlsforms.s3.amazonaws.com/metadata.json';
 
@@ -44,19 +35,22 @@ function goToUpload() {
       </div>
     </div>
 
-    <div v-else class="forms-container">
+    <div v-else class="examples-content">
       <h2>Example Forms</h2>
 
-      <FormRecord
-        v-for="(form, index) in forms"
-        :key="index"
-        :title="form.title"
-        :location="form.location"
-        :description="form.description"
-        :tags="form.tags"
-        :url="form.url"
-        :external_link="form.external_link"
-      />
+      <div class="forms-container">
+        <FormRecord
+          v-for="form in forms"
+          :key="form.id"
+          :id="form.id"
+          :title="form.title"
+          :location="form.location"
+          :description="form.description"
+          :tags="form.tags"
+          :url="form.url"
+          :external_link="form.external_link"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -74,19 +68,23 @@ function goToUpload() {
   }
 }
 
+.examples-content {
+  @include bp(lg) {
+    max-width: 70rem;
+    margin: 0 auto;
+  }
+}
+
 .forms-container {
   display: grid;
   grid-template-columns: 1fr;
   gap: $spacing-md;
   align-items: stretch;
+  justify-content: center;
 
   @include bp(lg) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
     gap: $spacing-lg;
-  }
-
-  @include bp(xl) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 </style>
