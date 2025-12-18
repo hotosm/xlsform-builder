@@ -10,6 +10,7 @@ import '@webawesome/textarea/textarea.js';
 
 import { fetchMetadata, getPreSignedUrl, uploadJsonToS3, uploadToS3 } from '@/services/s3Upload';
 import { isMobileDevice } from '@/utils/deviceDetection';
+import { generateFormId, generateUniqueFileName } from '@/utils/fileUtils';
 
 const isMobile = isMobileDevice();
 
@@ -48,10 +49,9 @@ async function handleSubmit() {
   uploadState.isSubmitting = true;
 
   try {
-    const formFileResponse = await getPreSignedUrl(
-      uploadState.selectedFile.name,
-      uploadState.selectedFile.type,
-    );
+    const uniqueFileName = generateUniqueFileName(formData.title, uploadState.selectedFile.name);
+
+    const formFileResponse = await getPreSignedUrl(uniqueFileName, uploadState.selectedFile.type);
 
     await uploadToS3(uploadState.selectedFile, formFileResponse.uploadUrl);
 
@@ -59,6 +59,7 @@ async function handleSubmit() {
 
     const tags = parseTags();
     const newForm: FormMetadata = {
+      id: generateFormId(),
       title: formData.title.trim(),
       location: formData.location.trim(),
       description: formData.description.trim(),
@@ -209,11 +210,6 @@ function handleViewExamples() {
     color: $color-text-primary;
     font-size: $font-size-large;
     font-family: $font-barlow-semibold;
-  }
-
-  wa-input:not(:focus-visible),
-  wa-textarea:not(:focus-visible) {
-    --wa-focus-ring-style: none;
   }
 }
 
