@@ -9,7 +9,6 @@ html {
 
 .container {
   padding: $spacing-md;
-  background-color: $color-bg-primary;
   min-height: 100vh;
   font-family: $font-base;
 
@@ -30,7 +29,7 @@ h6 {
 }
 
 hot-header {
-  font-family: $font-barlow-light;
+  font-family: $font-base-semibold;
 }
 
 // Global link styles
@@ -41,4 +40,9 @@ a {
   &:hover {
     text-decoration: underline;
   }
+}
+
+wa-input,
+wa-textarea {
+  --wa-focus-ring: none;
 }
