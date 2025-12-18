@@ -64,18 +64,5 @@ services:
       retries: 3
       start_period: 40s
 
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    ports:
-      - "5173:5173"
-    environment:
-      - VITE_API_URL=http://localhost:3000
-      - VITE_METADATA_URL=http://localhost:9000/xlsforms/metadata.json
-    depends_on:
-      - backend
-    restart: unless-stopped
-
 volumes:
   minio_data:
