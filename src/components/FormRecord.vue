@@ -6,6 +6,7 @@ import '@webawesome/button/button.js';
 import '@webawesome/card/card.js';
 
 const props = defineProps<{
+  id: string;
   title: string;
   location: string;
   description: string;
@@ -19,11 +20,20 @@ const xlsformViewerUrl = computed(() => {
   return `https://xlsform-editor.fmtm.hotosm.org?url=${props.url}`;
 });
 
+const isLocalEnvironment =
+  import.meta.env.DEV || import.meta.env.VITE_METADATA_URL?.includes('localhost');
+
 const hasExternalLink = computed(() => {
   return props.external_link && props.external_link.trim() !== '';
 });
 
 function openForm() {
+  if (isLocalEnvironment) {
+    alert(
+      'This form is stored locally and cannot be opened in the external editor. Use the Download Form button instead or upload to AWS S3 to test this feature.',
+    );
+    return;
+  }
   window.open(xlsformViewerUrl.value, '_blank', 'noopener,noreferrer');
 }
 
@@ -49,10 +59,10 @@ function openExternalLink() {
       </div>
 
       <div class="card-footer">
+        <p class="location">
+          <i>{{ location }}</i>
+        </p>
         <div v-if="tags.length > 0" class="tags-section">
-          <p class="location">
-            <i>{{ location }}</i>
-          </p>
           <span class="tags-label">Tags:</span>
           <div class="tags-container">
             <wa-badge v-for="tag in tags" :key="tag" appearance="filled outlined" class="tag-badge">
@@ -62,7 +72,7 @@ function openExternalLink() {
         </div>
 
         <div class="card-actions">
-          <wa-button variant="primary" class="card-actions-button" @click="openForm">
+          <wa-button variant="danger" class="card-actions-button" @click="openForm">
             Open Form
           </wa-button>
           <wa-button variant="neutral" class="card-actions-button" @click="downloadForm">
