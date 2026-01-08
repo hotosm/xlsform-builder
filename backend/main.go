@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -40,19 +41,19 @@ type PreSignedDownloadResponse struct {
 }
 
 var (
-	s3Client        *s3.Client
-	bucketName      string
-	region          string
-	minioEndpoint   string  
-	minioPublicURL  string 
-	usePathStyle    bool
+	s3Client           *s3.Client
+	bucketName         string
+	region             string
+	s3Endpoint         string
+	s3ExternalEndpoint string
+	usePathStyle       bool
 )
 
 func main() {
 	bucketName = getEnv("S3_BUCKET_NAME", "xlsforms")
 	region = getEnv("AWS_REGION", "us-east-1")
-	minioEndpoint = os.Getenv("MINIO_ENDPOINT")      
-	minioPublicURL = os.Getenv("MINIO_PUBLIC_URL")   
+	s3Endpoint = os.Getenv("S3_ENDPOINT")
+	s3ExternalEndpoint = getEnv("S3_EXTERNAL_ENDPOINT", s3Endpoint)
 	usePathStyle = getEnv("USE_PATH_STYLE", "false") == "true"
 	port := getEnv("PORT", "3000")
 
@@ -65,9 +66,8 @@ func main() {
 	mux.HandleFunc("/api/presigned-url", presignedUploadURLHandler)
 	mux.HandleFunc("/api/presigned-download-url", presignedDownloadURLHandler)
 
-	// TODO: Restrict origins in production via ALLOWED_ORIGINS env var
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		AllowedOrigins:   strings.Split(getEnv("ALLOWED_ORIGINS", "*"), ","),
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
 		ExposedHeaders:   []string{"*"},
@@ -80,8 +80,11 @@ func main() {
 	log.Printf("Starting server on port %s", port)
 	log.Printf("Bucket: %s", bucketName)
 	log.Printf("Region: %s", region)
-	if minioEndpoint != "" {
-		log.Printf("Using MinIO at: %s", minioEndpoint)
+	if s3Endpoint != "" {
+		log.Printf("Using S3-compatible storage at: %s", s3Endpoint)
+		if s3ExternalEndpoint != s3Endpoint {
+			log.Printf("External endpoint: %s", s3ExternalEndpoint)
+		}
 	} else {
 		log.Printf("Using AWS S3")
 	}
@@ -119,8 +122,8 @@ func initS3Client() error {
 	}
 
 	s3Client = s3.NewFromConfig(cfg, func(o *s3.Options) {
-		if minioEndpoint != "" {
-			o.BaseEndpoint = aws.String(minioEndpoint)
+		if s3Endpoint != "" {
+			o.BaseEndpoint = aws.String(s3Endpoint)
 		}
 		o.UsePathStyle = usePathStyle
 	})
@@ -159,9 +162,9 @@ func presignedUploadURLHandler(w http.ResponseWriter, r *http.Request) {
 	s3Key := fileName
 
 	presignClient := s3.NewPresignClient(s3Client, func(po *s3.PresignOptions) {
-		if minioPublicURL != "" {
+		if s3ExternalEndpoint != "" {
 			po.ClientOptions = append(po.ClientOptions, func(o *s3.Options) {
-				o.BaseEndpoint = aws.String(minioPublicURL)
+				o.BaseEndpoint = aws.String(s3ExternalEndpoint)
 			})
 		}
 	})
@@ -181,8 +184,8 @@ func presignedUploadURLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var fileURL string
-	if minioPublicURL != "" {
-		fileURL = fmt.Sprintf("%s/%s/%s", minioPublicURL, bucketName, s3Key)
+	if s3ExternalEndpoint != "" {
+		fileURL = fmt.Sprintf("%s/%s/%s", s3ExternalEndpoint, bucketName, s3Key)
 	} else {
 		fileURL = fmt.Sprintf("https://%s.s3.amazonaws.com/%s", bucketName, s3Key)
 	}
@@ -217,10 +220,9 @@ func presignedDownloadURLHandler(w http.ResponseWriter, r *http.Request) {
 	s3Key := fileName
 
 	presignClient := s3.NewPresignClient(s3Client, func(po *s3.PresignOptions) {
-		if s3Endpoint != "" {
-			externalEndpoint := getEnv("S3_EXTERNAL_ENDPOINT", s3Endpoint)
+		if s3ExternalEndpoint != "" {
 			po.ClientOptions = append(po.ClientOptions, func(o *s3.Options) {
-				o.BaseEndpoint = aws.String(externalEndpoint)
+				o.BaseEndpoint = aws.String(s3ExternalEndpoint)
 			})
 		}
 	})
