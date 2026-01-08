@@ -1,35 +1,38 @@
-# Build stage
-FROM golang:1.21-alpine AS builder
+FROM golang:1.21 AS base
 
-WORKDIR /app
 
-# Copy go mod file
+# Build statically compiled binary
+FROM base AS build
+WORKDIR /code
 COPY go.mod ./
-
-# Download dependencies (this will create go.sum)
 RUN go mod download
-
-# Copy source code
 COPY . .
-
-# Tidy dependencies to ensure go.sum is correct
 RUN go mod tidy
+RUN CGO_ENABLED=0 GOOS=linux go build -o /code/server .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/server .
 
-# Runtime stage
-FROM alpine:latest
+# Add a non-root user to passwd file
+FROM base AS useradd
+RUN groupadd -g 1000 nonroot
+RUN useradd -u 1000 nonroot -g 1000
 
-RUN apk --no-cache add ca-certificates
 
-WORKDIR /root/
+# Add ca-certs required for calling remote signed APIs
+FROM base AS certs
+RUN apt-get update --quiet \
+    && DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y --quiet --no-install-recommends \
+        "ca-certificates" \
+    && rm -rf /var/lib/apt/lists/* \
+    && update-ca-certificates
 
-# Copy the binary from builder
-COPY --from=builder /app/server .
 
-# Expose port
-EXPOSE 3000
-
-# Run the binary
-CMD ["./server"]
+# Deploy the application binary into scratch image
+FROM scratch AS release
+WORKDIR /code
+COPY --from=build /code/server /code/server
+COPY --from=useradd /etc/group /etc/group
+COPY --from=useradd /etc/passwd /etc/passwd
+COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+USER nonroot:nonroot
+ENTRYPOINT ["/code/server"]
