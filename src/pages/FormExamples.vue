@@ -69,9 +69,13 @@ function goToUpload() {
 }
 
 .examples-content {
-  @include bp(lg) {
-    max-width: 70rem;
-    margin: 0 auto;
+  max-width: 50rem;
+  margin: 0 auto;
+  padding: $spacing-lg;
+
+  h2 {
+    margin-bottom: $spacing-lg;
+    color: $color-text-primary;
   }
 }
 
@@ -80,9 +84,8 @@ function goToUpload() {
   grid-template-columns: 1fr;
   gap: $spacing-md;
   align-items: stretch;
-  justify-content: center;
 
-  @include bp(lg) {
+  @include bp(md) {
     grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
     gap: $spacing-lg;
   }
