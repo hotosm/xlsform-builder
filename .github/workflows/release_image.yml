@@ -1,0 +1,18 @@
+name: 🚀 Release Image
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  # Both required for nested job in image_build workflow
+  contents: read
+  packages: write
+
+jobs:
+  container-img:
+    uses: hotosm/gh-workflows/.github/workflows/image_build.yml@2.0.5
+    needs: prep
+    with:
+      build_target: release
+      image_name: ghcr.io/${{ github.repository }}/server
