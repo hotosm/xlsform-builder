@@ -23,7 +23,10 @@ service:
 ingress:
   enabled: true
   className: nginx
-  hostname: xlsforms.fieldtm.hotosm.org
+  frontend:
+    hostname: xlsforms.field.hotosm.org
+  backend:
+    hostname: api.xlsforms.field.hotosm.org
   tls:
     enabled: true
     secretName: xlsform-builder-tls

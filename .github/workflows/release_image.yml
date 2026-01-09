@@ -14,13 +14,13 @@ jobs:
     uses: hotosm/gh-workflows/.github/workflows/image_build.yml@2.0.5
     needs: prep
     with:
-      build_target: release
       image_name: ghcr.io/${{ github.repository }}/backend
+      context: backend
+      build_target: release
 
   frontend:
     uses: hotosm/gh-workflows/.github/workflows/image_build.yml@2.0.5
     needs: prep
     with:
-      build_dockerfile: frontend.Dockerfile
-      build_target: release
       image_name: ghcr.io/${{ github.repository }}/frontend
+      build_target: release

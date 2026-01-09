@@ -1,11 +1,13 @@
 {{- if .Values.ingress.enabled }}
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "xlsform-builder.name" . }}
+  name: {{ include "xlsform-builder.name" . }}-frontend
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.hostname }}
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.frontend.hostname }}
+    external-dns.alpha.kubernetes.io/ttl: "300"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
   {{- if .Values.ingress.className }}
   ingressClassName: {{ .Values.ingress.className }}
@@ -13,11 +15,11 @@ spec:
   {{- if and .Values.ingress.tls.enabled .Values.ingress.tls.secretName }}
   tls:
     - hosts:
-        - {{ .Values.ingress.hostname }}
-      secretName: {{ .Values.ingress.tls.secretName }}
+        - {{ .Values.ingress.frontend.hostname }}
+      secretName: {{ .Values.ingress.tls.secretName }}-frontend
   {{- end }}
   rules:
-    - host: {{ .Values.ingress.hostname }}
+    - host: {{ .Values.ingress.frontend.hostname }}
       http:
         paths:
           - path: /
@@ -27,7 +29,30 @@ spec:
                 name: {{ include "xlsform-builder.frontendFullname" . }}
                 port:
                   number: {{ .Values.service.frontend.port }}
-          - path: /api
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "xlsform-builder.name" . }}-backend
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.backend.hostname }}
+    external-dns.alpha.kubernetes.io/ttl: "300"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- if and .Values.ingress.tls.enabled .Values.ingress.tls.secretName }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.backend.hostname }}
+      secretName: {{ .Values.ingress.tls.secretName }}-backend
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.backend.hostname }}
+      http:
+        paths:
+          - path: /
             pathType: Prefix
             backend:
               service:
