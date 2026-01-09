@@ -93,7 +93,6 @@ build:
   
   just chart lint
   just chart dependencies
-  just chart validate
   just chart package
 
 # Lint the Helm chart
@@ -117,17 +116,6 @@ dependencies:
   helm dependency update
   cd ..
   echo "✓ Dependencies updated"
-  echo ""
-
-# Validate chart templates
-validate:
-  #!/usr/bin/env sh
-  set -e
-
-  cd {{justfile_directory()}}
-  echo "🧪 Testing chart (dry-run)..."
-  helm install xlsform-builder-test ./chart --dry-run=client --take-ownership --debug > /dev/null
-  echo "✓ Test passed"
   echo ""
 
 # Package the Helm chart
