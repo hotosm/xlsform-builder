@@ -21,7 +21,7 @@ onMounted(async () => {
 });
 
 function goToUpload() {
-  window.location.hash = '/';
+  window.location.hash = '/upload';
 }
 </script>
 

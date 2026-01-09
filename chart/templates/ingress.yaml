@@ -1,0 +1,62 @@
+{{- if .Values.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "xlsform-builder.name" . }}-frontend
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.frontend.hostname }}
+    external-dns.alpha.kubernetes.io/ttl: "300"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- if and .Values.ingress.tls.enabled .Values.ingress.tls.secretName }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.frontend.hostname }}
+      secretName: {{ .Values.ingress.tls.secretName }}-frontend
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.frontend.hostname }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "xlsform-builder.frontendFullname" . }}
+                port:
+                  number: {{ .Values.service.frontend.port }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "xlsform-builder.name" . }}-backend
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.backend.hostname }}
+    external-dns.alpha.kubernetes.io/ttl: "300"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- if and .Values.ingress.tls.enabled .Values.ingress.tls.secretName }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.backend.hostname }}
+      secretName: {{ .Values.ingress.tls.secretName }}-backend
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.backend.hostname }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "xlsform-builder.backendFullname" . }}
+                port:
+                  number: {{ .Values.service.backend.port }}
+{{- end }}

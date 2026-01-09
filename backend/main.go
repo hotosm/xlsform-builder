@@ -55,7 +55,7 @@ func main() {
 	s3Endpoint = os.Getenv("S3_ENDPOINT")
 	s3ExternalEndpoint = getEnv("S3_EXTERNAL_ENDPOINT", s3Endpoint)
 	usePathStyle = getEnv("USE_PATH_STYLE", "false") == "true"
-	port := getEnv("PORT", "3000")
+	port := getEnv("PORT", "3001")
 
 	if err := initS3Client(); err != nil {
 		log.Fatalf("Failed to initialize S3 client: %v", err)
@@ -83,7 +83,7 @@ func main() {
 	if s3Endpoint != "" {
 		log.Printf("Using S3-compatible storage at: %s", s3Endpoint)
 		if s3ExternalEndpoint != s3Endpoint {
-			log.Printf("External endpoint: %s", s3ExternalEndpoint)
+			log.Printf("S3 external endpoint: %s", s3ExternalEndpoint)
 		}
 	} else {
 		log.Printf("Using AWS S3")

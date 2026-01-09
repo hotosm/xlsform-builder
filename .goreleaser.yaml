@@ -1,7 +1,7 @@
 version: 2
 
 builds:
-  - binary: server
+  - binary: backend
     main: main.go
     env:
       - CGO_ENABLED=0
@@ -18,7 +18,7 @@ builds:
       - -s -w -X main.version={{.Tag}} -X main.buildTime={{.Date}}
 
 archives:
-  - name_template: "server_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  - name_template: "backend_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     wrap_in_directory: false
     format: tar.gz
     # use zip for windows archives

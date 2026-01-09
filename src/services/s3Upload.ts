@@ -1,5 +1,5 @@
 // TODO: Update this URL when the backend service is deployed
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.xlsforms.field.hotosm.org';
 
 export async function getPreSignedUrl(
   fileName: string,

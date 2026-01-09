@@ -4,7 +4,7 @@
 *.md
 .git
 .gitignore
-server
+backend
 tmp
 
 # Let Docker generate go.sum during build

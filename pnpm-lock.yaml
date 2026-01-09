@@ -12,8 +12,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(@floating-ui/utils@0.2.10)(@types/react@19.1.13)
       '@hotosm/ui':
-        specifier: link:../ui
-        version: link:../ui
+        specifier: 0.4.0
+        version: 0.4.0(@awesome.me/webawesome@3.0.0(@floating-ui/utils@0.2.10)(@types/react@19.1.13))
       vue:
         specifier: ^3.5.17
         version: 3.5.17(typescript@5.8.3)
@@ -328,6 +328,12 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
+
+  '@hotosm/ui@0.4.0':
+    resolution: {integrity: sha512-rskf6jlkwgMOeIUdDNYmVuS9ZcqBHF9PzSeoFEIHC6q9Z2vUnd8jFTLXlx+MhZOv5q5+HNsl+g5Ag2CD6GJqpA==}
+    engines: {node: '>=14.17.0'}
+    peerDependencies:
+      '@awesome.me/webawesome': 3.0.0
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -1693,6 +1699,10 @@ snapshots:
       '@floating-ui/utils': 0.2.10
 
   '@floating-ui/utils@0.2.10': {}
+
+  '@hotosm/ui@0.4.0(@awesome.me/webawesome@3.0.0(@floating-ui/utils@0.2.10)(@types/react@19.1.13))':
+    dependencies:
+      '@awesome.me/webawesome': 3.0.0(@floating-ui/utils@0.2.10)(@types/react@19.1.13)
 
   '@humanfs/core@0.19.1': {}
 

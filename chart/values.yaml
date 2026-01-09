@@ -1,0 +1,44 @@
+replicaCount:
+  backend: 1
+  frontend: 1
+
+image:
+  backend:
+    repository: ghcr.io/hotosm/xlsform-builder/backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  frontend:
+    repository: ghcr.io/hotosm/xlsform-builder/frontend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+service:
+  backend:
+    type: ClusterIP
+    port: 3001
+  frontend:
+    type: ClusterIP
+    port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  frontend:
+    hostname: xlsforms.field.hotosm.org
+  backend:
+    hostname: api.xlsforms.field.hotosm.org
+  tls:
+    enabled: true
+    secretName: xlsform-builder-tls
+
+resources:
+  backend: {}
+  frontend: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+
