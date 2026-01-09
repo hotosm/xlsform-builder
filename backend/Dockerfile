@@ -6,7 +6,7 @@ COPY . .
 RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux go build -o /code/backend .
 
-FROM gcr.io/distroless/static-debian13:nonroot
+FROM gcr.io/distroless/static-debian13:nonroot AS release
 WORKDIR /code
 COPY --from=build /code/backend /code/backend
 ENTRYPOINT ["/code/backend"]
