@@ -4,7 +4,7 @@ volumes:
 services:
   # MinIO - Local S3-compatible storage
   minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     ports:
       - "9000:9000" # API
       - "9001:9001" # Console UI
@@ -14,7 +14,7 @@ services:
       - MINIO_API_CORS_ALLOW_ORIGIN=*
     volumes:
       - minio_data:/data
-    command: backend /data --console-address ":9001"
+    command: server /data --console-address ":9001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
@@ -24,7 +24,7 @@ services:
 
   # MinIO setup - Creates bucket and uploads initial metadata
   minio-setup:
-    image: minio/mc:latest
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
     depends_on:
       minio:
         condition: service_healthy
@@ -44,9 +44,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3001:3001"
     environment:
-      - PORT=3000
+      - PORT=3001
       - AWS_REGION=us-east-1
       - AWS_ACCESS_KEY_ID=minioadmin
       - AWS_SECRET_ACCESS_KEY=minioadmin
@@ -61,22 +61,22 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 5s
+      retries: 10
+      start_period: 20s
+      timeout: 5s
 
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://localhost:3000
+        VITE_API_URL: http://localhost:3001
         VITE_METADATA_URL: http://localhost:9000/xlsforms/metadata.json
     ports:
-      - "5173:80"
+      - "3000:80"
     depends_on:
       backend:
-        condition: service_healthy
+        condition: service_started
     restart: unless-stopped

@@ -24,9 +24,12 @@ spec:
         - name: backend
           image: "{{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag }}"
           imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
+          env:
+            - name: PORT
+              value: "3001"
           ports:
             - name: http
-              containerPort: {{ .Values.service.backend.port }}
+              containerPort: 3001
           readinessProbe:
             httpGet:
               path: /

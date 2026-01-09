@@ -12,14 +12,14 @@ import { isMobileDevice } from './utils/deviceDetection';
 import '/src/styles/main.scss';
 
 const routes: Record<string, any> = {
-  '/': FormUpload,
-  '/examples': FormExamples,
+  '/': FormExamples,
+  '/upload': FormUpload,
   '/builder': FormBuilder,
 };
 
 const navItems = [
-  { label: 'Upload', path: '/' },
-  { label: 'Examples', path: '/examples' },
+  { label: 'Examples', path: '/' },
+  { label: 'Upload', path: '/upload' },
   { label: 'Builder', path: '/builder' },
 ];
 

@@ -102,7 +102,7 @@ function handleDialogClose() {
 function handleViewExamples() {
   uploadState.showSuccessDialog = false;
   resetForm();
-  window.location.hash = '/examples';
+  window.location.hash = '/';
 }
 </script>
 
