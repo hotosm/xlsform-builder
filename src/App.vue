@@ -8,34 +8,34 @@ import FormBuilder from './pages/FormBuilder.vue';
 import FormExamples from './pages/FormExamples.vue';
 import FormUpload from './pages/FormUpload.vue';
 import NotFound from './pages/NotFound.vue';
+import { isMobileDevice } from './utils/deviceDetection';
 import '/src/styles/main.scss';
 
 const routes: Record<string, any> = {
-  '/': FormExamples,
+  '/': FormUpload,
+  '/examples': FormExamples,
   '/builder': FormBuilder,
-  '/upload': FormUpload,
 };
 
-const headerTabs = [
-  {
-    label: 'Examples',
-    clickEvent: async () => {
-      window.location.hash = '/';
-    },
-  },
-  {
-    label: 'Builder',
-    clickEvent: async () => {
-      window.location.hash = '/builder';
-    },
-  },
-  {
-    label: 'Upload',
-    clickEvent: async () => {
-      window.location.hash = '/upload';
-    },
-  },
+const navItems = [
+  { label: 'Upload', path: '/' },
+  { label: 'Examples', path: '/examples' },
+  { label: 'Builder', path: '/builder' },
 ];
+
+const headerTabs = navItems.map((item) => ({
+  label: item.label,
+  clickEvent: async () => {
+    window.location.hash = item.path;
+  },
+}));
+
+const drawerLinks = navItems.map((item) => ({
+  label: item.label,
+  href: `#${item.path}`,
+}));
+
+const isMobile = isMobileDevice();
 
 // Handle routes
 const currentPath = ref(window.location.hash);
@@ -61,6 +61,8 @@ const currentView = computed(() => {
     title="XLSForm Builder"
     logo="/favicon.svg"
     :tabs="headerTabs"
+    :drawerLinks="drawerLinks"
+    :drawer="isMobile"
     size="small"
   ></hot-header>
 

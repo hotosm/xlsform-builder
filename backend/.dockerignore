@@ -1,0 +1,11 @@
+# Ignore files that don't need to be in the Docker image
+.env
+.env.example
+*.md
+.git
+.gitignore
+server
+tmp
+
+# Let Docker generate go.sum during build
+go.sum

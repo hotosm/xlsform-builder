@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@awesome.me/webawesome':
-        specifier: 3.0.0-beta.5
-        version: 3.0.0-beta.5(@floating-ui/utils@0.2.10)(@types/react@19.1.13)
+        specifier: 3.0.0
+        version: 3.0.0(@floating-ui/utils@0.2.10)(@types/react@19.1.13)
       '@hotosm/ui':
-        specifier: 0.3.4b2
-        version: 0.3.4-b2
+        specifier: link:../ui
+        version: link:../ui
       vue:
         specifier: ^3.5.17
         version: 3.5.17(typescript@5.8.3)
@@ -24,6 +24,9 @@ importers:
       '@trivago/prettier-plugin-sort-imports':
         specifier: ^5.2.2
         version: 5.2.2(@vue/compiler-sfc@3.5.17)(prettier@3.6.2)
+      '@types/node':
+        specifier: ^24.10.1
+        version: 24.10.1
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.44.0
         version: 8.44.1(@typescript-eslint/parser@8.44.1(eslint@9.36.0)(typescript@5.8.3))(eslint@9.36.0)(typescript@5.8.3)
@@ -32,7 +35,7 @@ importers:
         version: 8.44.1(eslint@9.36.0)(typescript@5.8.3)
       '@vitejs/plugin-vue':
         specifier: ^6.0.0
-        version: 6.0.0(vite@7.0.5(sass-embedded@1.93.0)(sass@1.93.0))(vue@3.5.17(typescript@5.8.3))
+        version: 6.0.0(vite@7.0.5(@types/node@24.10.1)(sass-embedded@1.93.0)(sass@1.93.0))(vue@3.5.17(typescript@5.8.3))
       '@vue/eslint-config-typescript':
         specifier: ^14.6.0
         version: 14.6.0(eslint-plugin-vue@10.5.0(@typescript-eslint/parser@8.44.1(eslint@9.36.0)(typescript@5.8.3))(eslint@9.36.0)(vue-eslint-parser@10.2.0(eslint@9.36.0)))(eslint@9.36.0)(typescript@5.8.3)
@@ -59,15 +62,15 @@ importers:
         version: 5.8.3
       vite:
         specifier: ^7.0.4
-        version: 7.0.5(sass-embedded@1.93.0)(sass@1.93.0)
+        version: 7.0.5(@types/node@24.10.1)(sass-embedded@1.93.0)(sass@1.93.0)
       vue-tsc:
         specifier: ^2.2.12
         version: 2.2.12(typescript@5.8.3)
 
 packages:
 
-  '@awesome.me/webawesome@3.0.0-beta.5':
-    resolution: {integrity: sha512-R71gPf88Zcm3Q7C+P1Y2fiMHixX+BUNkntF+GnTRluD82VQAnNIaBkPZ4BL0zVAxXFw/F1+H0DVdHaeJYtcesg==}
+  '@awesome.me/webawesome@3.0.0':
+    resolution: {integrity: sha512-KLxAiSV9hH+bB8OkpaZUA9zNgBu6G1cXirsE0VWmdS/jtpup1Wf1aC7yGYjPSi/61BVUqk8geA4oylt4oLdmlQ==}
     engines: {node: '>=14.17.0'}
 
   '@babel/code-frame@7.27.1':
@@ -325,10 +328,6 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
-
-  '@hotosm/ui@0.3.4-b2':
-    resolution: {integrity: sha512-fE3lgvuuatlenAMeFsDOLA0nURMu5urxt3KpAN+RfOV+AJ9MhRZYLnHWWlQhUW5in5K4BC7EmW3fWkPcxx/GDw==}
-    engines: {node: '>=14.17.0'}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -594,6 +593,9 @@ packages:
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
+
+  '@types/node@24.10.1':
+    resolution: {integrity: sha512-GNWcUTRBgIRJD5zj+Tq0fKOJ5XZajIiBroOF0yvj2bSU1WvNdYS/dn9UxwsujGW4JX06dnHyjV2y9rRaybH0iQ==}
 
   '@types/react@19.1.13':
     resolution: {integrity: sha512-hHkbU/eoO3EG5/MZkuFSKmYqPbSVk5byPFa3e7y/8TybHiLMACgI8seVYlicwk7H5K/rI2px9xrQp/C+AUDTiQ==}
@@ -1341,9 +1343,6 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
-  style-observer@0.0.7:
-    resolution: {integrity: sha512-t75H3CRy+vd5q3yqyrf/De4tkz33hPQTiCcfh0NTesI5G7kJnZ227LEYTwqjKTtaFOCJvqZcYFHpJlF8bsk3bQ==}
-
   supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
@@ -1392,6 +1391,9 @@ packages:
     resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  undici-types@7.16.0:
+    resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
@@ -1484,7 +1486,7 @@ packages:
 
 snapshots:
 
-  '@awesome.me/webawesome@3.0.0-beta.5(@floating-ui/utils@0.2.10)(@types/react@19.1.13)':
+  '@awesome.me/webawesome@3.0.0(@floating-ui/utils@0.2.10)(@types/react@19.1.13)':
     dependencies:
       '@ctrl/tinycolor': 4.1.0
       '@floating-ui/dom': 1.7.2
@@ -1495,7 +1497,6 @@ snapshots:
       lit: 3.3.1
       nanoid: 5.1.5
       qr-creator: 1.0.0
-      style-observer: 0.0.7
     transitivePeerDependencies:
       - '@floating-ui/utils'
       - '@types/react'
@@ -1693,8 +1694,6 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
-  '@hotosm/ui@0.3.4-b2': {}
-
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.7':
@@ -1887,6 +1886,10 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
+  '@types/node@24.10.1':
+    dependencies:
+      undici-types: 7.16.0
+
   '@types/react@19.1.13':
     dependencies:
       csstype: 3.1.3
@@ -1986,10 +1989,10 @@ snapshots:
       '@typescript-eslint/types': 8.44.1
       eslint-visitor-keys: 4.2.1
 
-  '@vitejs/plugin-vue@6.0.0(vite@7.0.5(sass-embedded@1.93.0)(sass@1.93.0))(vue@3.5.17(typescript@5.8.3))':
+  '@vitejs/plugin-vue@6.0.0(vite@7.0.5(@types/node@24.10.1)(sass-embedded@1.93.0)(sass@1.93.0))(vue@3.5.17(typescript@5.8.3))':
     dependencies:
       '@rolldown/pluginutils': 1.0.0-beta.19
-      vite: 7.0.5(sass-embedded@1.93.0)(sass@1.93.0)
+      vite: 7.0.5(@types/node@24.10.1)(sass-embedded@1.93.0)(sass@1.93.0)
       vue: 3.5.17(typescript@5.8.3)
 
   '@volar/language-core@2.4.15':
@@ -2673,8 +2676,6 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  style-observer@0.0.7: {}
-
   supports-color@7.2.0:
     dependencies:
       has-flag: 4.0.0
@@ -2721,6 +2722,8 @@ snapshots:
 
   typescript@5.8.3: {}
 
+  undici-types@7.16.0: {}
+
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
@@ -2729,7 +2732,7 @@ snapshots:
 
   varint@6.0.0: {}
 
-  vite@7.0.5(sass-embedded@1.93.0)(sass@1.93.0):
+  vite@7.0.5(@types/node@24.10.1)(sass-embedded@1.93.0)(sass@1.93.0):
     dependencies:
       esbuild: 0.25.8
       fdir: 6.4.6(picomatch@4.0.3)
@@ -2738,6 +2741,7 @@ snapshots:
       rollup: 4.45.1
       tinyglobby: 0.2.14
     optionalDependencies:
+      '@types/node': 24.10.1
       fsevents: 2.3.3
       sass: 1.93.0
       sass-embedded: 1.93.0

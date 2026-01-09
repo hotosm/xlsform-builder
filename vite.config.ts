@@ -1,4 +1,5 @@
 import vue from '@vitejs/plugin-vue';
+import { URL, fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 
 // https://vite.dev/config/
@@ -13,6 +14,13 @@ export default defineConfig({
       },
     }),
   ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@webawesome': '@awesome.me/webawesome/dist/components',
+    },
+    dedupe: ['@awesome.me/webawesome'],
+  },
   css: {
     preprocessorOptions: {
       scss: {
