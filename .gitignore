@@ -32,3 +32,6 @@ backend/.env
 # Backend
 backend/backend
 backend/tmp
+
+# Helm chart
+xlsform-builder-*.tgz
