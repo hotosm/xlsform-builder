@@ -1,0 +1,8 @@
+apiVersion: v2
+name: xlsform-builder
+description: Share and build XLSForms
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+

@@ -30,5 +30,5 @@ backend/.env
 *.sw?
 
 # Backend
-backend/server
+backend/backend
 backend/tmp

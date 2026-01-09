@@ -8,7 +8,7 @@ COPY go.mod ./
 RUN go mod download
 COPY . .
 RUN go mod tidy
-RUN CGO_ENABLED=0 GOOS=linux go build -o /code/server .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /code/backend .
 
 
 # Add a non-root user to passwd file
@@ -30,9 +30,9 @@ RUN apt-get update --quiet \
 # Deploy the application binary into scratch image
 FROM scratch AS release
 WORKDIR /code
-COPY --from=build /code/server /code/server
+COPY --from=build /code/backend /code/backend
 COPY --from=useradd /etc/group /etc/group
 COPY --from=useradd /etc/passwd /etc/passwd
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 USER nonroot:nonroot
-ENTRYPOINT ["/code/server"]
+ENTRYPOINT ["/code/backend"]
