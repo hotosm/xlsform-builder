@@ -1,8 +1,15 @@
 name: 🚀 Release Chart
 
 on:
-  release:
-    types: [published]
+  # Push includes PR merge
+  push:
+    branches:
+      - main
+    paths:
+      # Workflow is triggered only if chart dir changes
+      - chart/**
+  # Allow manual trigger
+  workflow_dispatch:
 
 permissions:
   contents: read
