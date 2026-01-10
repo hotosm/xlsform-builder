@@ -112,30 +112,36 @@ $line-height-normal: var(--hot-line-height-normal);
 $line-height-loose: var(--hot-line-height-loose);
 $line-height-looser: var(--hot-line-height-looser);
 
-// Color Variables
-$color-bg-primary: var(--hot-color-neutral-50);
-$color-bg-surface: var(--hot-color-neutral-100);
-$color-text-primary: var(--hot-color-neutral-700);
-$color-text-heading: var(--hot-color-neutral-800);
-$color-link: var(--hot-color-primary-700);
-$color-border: var(--hot-color-neutral-200);
-$color-border-light: var(--hot-color-neutral-300);
+// Base Color Palette
+$color-primary-50: var(--hot-color-primary-50);
+$color-primary-500: var(--hot-color-primary-500);
+$color-primary-600: var(--hot-color-primary-600);
+$color-primary-700: var(--hot-color-primary-700);
+$color-primary-800: var(--hot-color-primary-800);
 
-// Action Button Colors
-$color-primary-bg: var(--hot-color-primary-500);
-$color-primary-bg-hover: var(--hot-color-primary-600);
-$color-primary-text: var(--hot-color-neutral-1000);
-$color-secondary-bg: var(--hot-color-neutral-100);
-$color-secondary-bg-hover: var(--hot-color-neutral-200);
-$color-secondary-text: var(--hot-color-neutral-700);
-$color-secondary-border: var(--hot-color-neutral-300);
-$color-secondary-border-hover: var(--hot-color-neutral-400);
-$color-external-bg: transparent;
-$color-external-bg-hover: var(--hot-color-primary-50);
-$color-external-text: var(--hot-color-primary-600);
-$color-external-text-hover: var(--hot-color-primary-700);
-$color-external-text-active: var(--hot-color-primary-800);
-$color-focus-outline: var(--hot-color-primary-500);
+$color-neutral-50: var(--hot-color-neutral-50);
+$color-neutral-100: var(--hot-color-neutral-100);
+$color-neutral-200: var(--hot-color-neutral-200);
+$color-neutral-300: var(--hot-color-neutral-300);
+$color-neutral-400: var(--hot-color-neutral-400);
+$color-neutral-700: var(--hot-color-neutral-700);
+$color-neutral-800: var(--hot-color-neutral-800);
+$color-neutral-1000: var(--hot-color-neutral-1000);
+
+// Semantic Color Tokens
+$color-primary: $color-primary-600;
+$color-primary-hover: $color-primary-700;
+
+$color-text-primary: $color-neutral-700;
+$color-text-heading: $color-neutral-800;
+
+$color-bg-primary: $color-neutral-50;
+$color-bg-surface: $color-neutral-100;
+
+$color-border: $color-neutral-200;
+$color-border-light: $color-neutral-300;
+
+$color-link: $color-primary-700;
 
 // Spacing Variables
 $spacing-xs: var(--hot-spacing-2x-small);
