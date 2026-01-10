@@ -1,69 +1,69 @@
-name: 🚩 Deploy to GH-Pages
+# name: 🚩 Deploy to GH-Pages
 
-on:
-  push:
-    branches:
-      - main
-    tags:
-      - "*"
-    # Workflow is triggered only if src changes
-    paths:
-      - index.html
-      - vite.config.ts
-      - src/**
-      - public/**
-      - pnpm-lock.yaml
-  # Allow manual trigger (workflow_dispatch)
-  workflow_dispatch:
+# on:
+#   push:
+#     branches:
+#       - main
+#     tags:
+#       - "*"
+#     # Workflow is triggered only if src changes
+#     paths:
+#       - index.html
+#       - vite.config.ts
+#       - src/**
+#       - public/**
+#       - pnpm-lock.yaml
+#   # Allow manual trigger (workflow_dispatch)
+#   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+# permissions:
+#   contents: read
+#   pages: write
+#   id-token: write
 
-# Allow one concurrent deployment
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
+# # Allow one concurrent deployment
+# concurrency:
+#   group: "pages"
+#   cancel-in-progress: true
 
-jobs:
-  publish:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+# jobs:
+#   publish:
+#     environment:
+#       name: github-pages
+#       url: ${{ steps.deployment.outputs.page_url }}
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
 
-        # Version is specified in package.json packageManager key
-      - uses: pnpm/action-setup@v4
+#         # Version is specified in package.json packageManager key
+#       - uses: pnpm/action-setup@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: "pnpm"
-          cache-dependency-path: "pnpm-lock.yaml"
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 22
+#           cache: "pnpm"
+#           cache-dependency-path: "pnpm-lock.yaml"
 
-      - name: Install dependencies
-        working-directory: .
-        run: CI=true pnpm install
+#       - name: Install dependencies
+#         working-directory: .
+#         run: CI=true pnpm install
 
-      - name: Build Dist
-        working-directory: .
-        run: pnpm build
+#       - name: Build Dist
+#         working-directory: .
+#         run: pnpm build
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+#       - name: Setup Pages
+#         uses: actions/configure-pages@v4
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload dist repository
-          path: "./dist"
+#       - name: Upload artifact
+#         uses: actions/upload-pages-artifact@v3
+#         with:
+#           # Upload dist repository
+#           path: "./dist"
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+#       - name: Deploy to GitHub Pages
+#         id: deployment
+#         uses: actions/deploy-pages@v4
