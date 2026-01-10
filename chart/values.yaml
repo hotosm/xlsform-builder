@@ -31,6 +31,21 @@ ingress:
     enabled: true
     secretName: xlsform-builder-tls
 
+backend:
+  env:
+    s3BucketName: xlsforms
+    awsRegion: us-east-1
+    s3Endpoint: ""
+    s3ExternalEndpoint: ""
+    usePathStyle: "false"
+  secrets:
+    enabled: false
+    secretName: xlsforms-s3-creds
+    # If secrets.enabled is true, these keys will be used from the secret
+    # Otherwise, you can set values directly (not recommended for production)
+    awsAccessKeyId: ""
+    awsSecretAccessKey: ""
+
 resources:
   backend: {}
   frontend: {}

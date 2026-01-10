@@ -27,6 +27,37 @@ spec:
           env:
             - name: PORT
               value: "3001"
+            {{- if .Values.backend.secrets.enabled }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.secrets.secretName }}
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.secrets.secretName }}
+                  key: AWS_SECRET_ACCESS_KEY
+            {{- else if and .Values.backend.secrets.awsAccessKeyId .Values.backend.secrets.awsSecretAccessKey }}
+            - name: AWS_ACCESS_KEY_ID
+              value: {{ .Values.backend.secrets.awsAccessKeyId | quote }}
+            - name: AWS_SECRET_ACCESS_KEY
+              value: {{ .Values.backend.secrets.awsSecretAccessKey | quote }}
+            {{- end }}
+            - name: S3_BUCKET_NAME
+              value: {{ .Values.backend.env.s3BucketName | quote }}
+            - name: AWS_REGION
+              value: {{ .Values.backend.env.awsRegion | quote }}
+            {{- if .Values.backend.env.s3Endpoint }}
+            - name: S3_ENDPOINT
+              value: {{ .Values.backend.env.s3Endpoint | quote }}
+            {{- end }}
+            {{- if .Values.backend.env.s3ExternalEndpoint }}
+            - name: S3_EXTERNAL_ENDPOINT
+              value: {{ .Values.backend.env.s3ExternalEndpoint | quote }}
+            {{- end }}
+            - name: USE_PATH_STYLE
+              value: {{ .Values.backend.env.usePathStyle | quote }}
           ports:
             - name: http
               containerPort: 3001
