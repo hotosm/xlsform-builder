@@ -63,11 +63,11 @@ spec:
               containerPort: 3001
           readinessProbe:
             httpGet:
-              path: /
+              path: /health
               port: http
           livenessProbe:
             httpGet:
-              path: /
+              path: /health
               port: http
           resources:
             {{- toYaml .Values.resources.backend | nindent 12 }}
