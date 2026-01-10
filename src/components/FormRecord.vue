@@ -17,7 +17,7 @@ const props = defineProps<{
 
 const xlsformViewerUrl = computed(() => {
   if (!props.url) return '';
-  return `https://xlsform-editor.fmtm.hotosm.org?url=${props.url}`;
+  return `https://xlsform-editor.field.hotosm.org?url=${props.url}`;
 });
 
 const isLocalEnvironment =
