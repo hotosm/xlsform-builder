@@ -18,7 +18,7 @@ const routes: Record<string, any> = {
 };
 
 const navItems = [
-  { label: 'Examples', path: '/' },
+  { label: 'Home', path: '/' },
   { label: 'Upload', path: '/upload' },
   { label: 'Builder', path: '/builder' },
 ];

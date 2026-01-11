@@ -2,10 +2,12 @@
 import { onMounted, ref } from 'vue';
 
 import '@webawesome/button/button.js';
+import '@webawesome/spinner/spinner.js';
 
 import FormRecord from '../components/FormRecord.vue';
 
 const forms = ref<FormMetadata[]>([]);
+const loading = ref(true);
 const formsUrl =
   import.meta.env.VITE_METADATA_URL || 'https://xlsforms.s3.amazonaws.com/metadata.json';
 
@@ -17,6 +19,8 @@ onMounted(async () => {
     forms.value = json.forms;
   } catch (e) {
     console.error('Failed to fetch forms:', e);
+  } finally {
+    loading.value = false;
   }
 });
 
@@ -27,7 +31,11 @@ function goToUpload() {
 
 <template>
   <div>
-    <div v-if="forms.length === 0" class="empty-state">
+    <div v-if="loading" class="loading-state">
+      <wa-spinner></wa-spinner>
+    </div>
+
+    <div v-else-if="forms.length === 0" class="empty-state">
       <div class="empty-state-content">
         <h3>No Forms Yet</h3>
         <p>Upload your first XLSForm to get started</p>
@@ -56,10 +64,23 @@ function goToUpload() {
 </template>
 
 <style scoped lang="scss">
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 200px);
+
+  wa-spinner {
+    font-size: 3rem;
+    --indicator-color: $color-primary;
+  }
+}
+
 .empty-state {
   display: flex;
   justify-content: center;
   align-items: center;
+  min-height: calc(100vh - 200px);
   padding: $spacing-xl;
 
   .empty-state-content {
