@@ -1,0 +1,17 @@
+{
+  "Rules": [
+    {
+      "ID": "DeleteXFormsStagingWeekly",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "xforms/staging/"
+      },
+      "Expiration": {
+        "Days": 7
+      },
+      "AbortIncompleteMultipartUpload": {
+        "DaysAfterInitiation": 7
+      }
+    }
+  ]
+}
