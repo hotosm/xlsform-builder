@@ -446,7 +446,7 @@ func convertToXForm(xlsformData []byte, filename string) (string, error) {
 
 func uploadXFormToS3(xmlData []byte, filename string) (string, error) {
 	ctx := context.Background()
-	s3Key := filename
+	s3Key := fmt.Sprintf("xforms/%s", filename)
 
 	_, err := prodS3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(bucketName),
