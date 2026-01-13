@@ -51,6 +51,7 @@ services:
       - "3001:3001"
     environment:
       - PORT=3001
+      - ENVIRONMENT=development
       - AWS_REGION=us-east-1
       - AWS_ACCESS_KEY_ID=minioadmin
       - AWS_SECRET_ACCESS_KEY=minioadmin
