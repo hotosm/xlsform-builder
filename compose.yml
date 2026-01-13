@@ -39,6 +39,10 @@ services:
       exit 0;
       "
 
+  pyxform:
+    image: ghcr.io/getodk/pyxform-http:latest
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
@@ -54,6 +58,8 @@ services:
       - S3_ENDPOINT=http://minio:9000
       - S3_EXTERNAL_ENDPOINT=http://localhost:9000
       - USE_PATH_STYLE=true
+      - PROD_AWS_ACCESS_KEY_ID=${PROD_AWS_ACCESS_KEY_ID}
+      - PROD_AWS_SECRET_ACCESS_KEY=${PROD_AWS_SECRET_ACCESS_KEY}
     depends_on:
       minio:
         condition: service_healthy
@@ -73,7 +79,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: http://localhost:3001
-        VITE_METADATA_URL: http://localhost:9000/xlsforms/metadata.json
+        VITE_METADATA_URL: https://xlsforms.s3.amazonaws.com/metadata.json
     ports:
       - "3000:80"
     depends_on:
