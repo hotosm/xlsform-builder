@@ -447,12 +447,13 @@ func convertToXForm(xlsformData []byte, filename string) (string, error) {
 func uploadXFormToS3(xmlData []byte, filename string) (string, error) {
 	ctx := context.Background()
 
-	env := getEnv("ENVIRONMENT", "development")
+	// Default to production folder (xforms/) unless explicitly set to development
+	env := getEnv("ENVIRONMENT", "production")
 	var s3Key string
-	if env == "production" {
-		s3Key = fmt.Sprintf("xforms/%s", filename)
-	} else {
+	if env == "development" {
 		s3Key = fmt.Sprintf("xforms/staging/%s", filename)
+	} else {
+		s3Key = fmt.Sprintf("xforms/%s", filename)
 	}
 
 	_, err := prodS3Client.PutObject(ctx, &s3.PutObjectInput{
