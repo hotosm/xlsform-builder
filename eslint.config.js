@@ -78,6 +78,7 @@ export default [
         navigator: 'readonly',
         location: 'readonly',
         console: 'readonly',
+        alert: 'readonly',
         // Node.js globals (for build tools, etc.)
         process: 'readonly',
         Buffer: 'readonly',

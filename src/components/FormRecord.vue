@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 import '@webawesome/badge/badge.js';
 import '@webawesome/button/button.js';
 import '@webawesome/card/card.js';
+import '@webawesome/spinner/spinner.js';
 
 const props = defineProps<{
   id: string;
@@ -27,6 +28,8 @@ const hasExternalLink = computed(() => {
   return props.external_link && props.external_link.trim() !== '';
 });
 
+const isConverting = ref(false);
+
 function openForm() {
   if (isLocalEnvironment) {
     alert(
@@ -46,6 +49,36 @@ function downloadForm() {
 
 function openExternalLink() {
   window.open(props.external_link, '_blank', 'noopener,noreferrer');
+}
+
+async function previewForm() {
+  isConverting.value = true;
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const response = await fetch(`${apiUrl}/api/convert`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ formUrl: props.url }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Conversion failed');
+    }
+
+    const { xformUrl } = await response.json();
+
+    const previewUrl = `https://getodk.org/web-forms-preview/app/index.html#/form?url=${encodeURIComponent(xformUrl)}`;
+    window.open(previewUrl, '_blank', 'noopener,noreferrer');
+  } catch (error) {
+    console.error('Failed to preview form:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    alert(`Failed to preview form: ${errorMessage}`);
+  } finally {
+    isConverting.value = false;
+  }
 }
 </script>
 
@@ -77,6 +110,17 @@ function openExternalLink() {
           </wa-button>
           <wa-button variant="neutral" class="card-actions-button" @click="downloadForm">
             Download Form
+          </wa-button>
+          <wa-button
+            variant="neutral"
+            class="card-actions-button"
+            @click="previewForm"
+            :disabled="isConverting"
+          >
+            <div class="button-content-wrapper">
+              <wa-spinner v-if="isConverting" class="button-spinner"></wa-spinner>
+              <span v-if="!isConverting">Preview Form</span>
+            </div>
           </wa-button>
           <wa-button
             v-if="hasExternalLink"
@@ -156,10 +200,33 @@ function openExternalLink() {
       }
 
       &-button {
-        flex: 1;
         width: 100%;
+
+        @include bp(md) {
+          flex: 1 1 calc(50% - #{$spacing-sm} / 2);
+          max-width: calc(50% - #{$spacing-sm} / 2);
+
+          &:last-child:nth-child(odd) {
+            flex: 1 1 100%;
+            max-width: 100%;
+          }
+        }
       }
     }
+  }
+
+  .button-content-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .button-spinner {
+    --track-width: 3px;
+    --indicator-color: currentColor;
+    width: 20px;
+    height: 20px;
   }
 }
 </style>
