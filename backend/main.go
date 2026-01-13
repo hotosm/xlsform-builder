@@ -467,7 +467,7 @@ func uploadXFormToS3(xmlData []byte, filename string) (string, error) {
 
 	fileURL := fmt.Sprintf("https://%s.s3.amazonaws.com/%s", bucketName, s3Key)
 
-	log.Printf("Uploaded XForm to production S3 (%s): %s", env, fileURL)
+	log.Printf("Uploaded XForm to production S3: %s", fileURL)
 	return fileURL, nil
 }
 
