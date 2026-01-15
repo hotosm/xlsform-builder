@@ -41,7 +41,7 @@ backend:
     s3ExternalEndpoint: ""
     usePathStyle: "false"
   secrets:
-    enabled: false
+    enabled: true
     secretName: xlsforms-s3-creds
     # If secrets.enabled is true, these keys will be used from the secret
     # Otherwise, you can set values directly (not recommended for production)
