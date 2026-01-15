@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: "{{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag }}"
+          image: "{{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
           env:
             - name: PORT

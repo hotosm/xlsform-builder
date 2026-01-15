@@ -5,11 +5,13 @@ replicaCount:
 image:
   backend:
     repository: ghcr.io/hotosm/xlsform-builder/backend
-    tag: "latest"
+    # Override tag version; default Chart.AppVersion
+    tag: ""
     pullPolicy: IfNotPresent
   frontend:
     repository: ghcr.io/hotosm/xlsform-builder/frontend
-    tag: "latest"
+    # Override tag version; default Chart.AppVersion
+    tag: ""
     pullPolicy: IfNotPresent
 
 service:
@@ -55,5 +57,3 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
-
-
