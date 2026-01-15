@@ -38,10 +38,24 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.backend.secrets.secretName }}
                   key: AWS_SECRET_ACCESS_KEY
+            - name: PROD_AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.secrets.secretName }}
+                  key: AWS_ACCESS_KEY_ID
+            - name: PROD_AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.secrets.secretName }}
+                  key: AWS_SECRET_ACCESS_KEY
             {{- else if and .Values.backend.secrets.awsAccessKeyId .Values.backend.secrets.awsSecretAccessKey }}
             - name: AWS_ACCESS_KEY_ID
               value: {{ .Values.backend.secrets.awsAccessKeyId | quote }}
             - name: AWS_SECRET_ACCESS_KEY
+              value: {{ .Values.backend.secrets.awsSecretAccessKey | quote }}
+            - name: PROD_AWS_ACCESS_KEY_ID
+              value: {{ .Values.backend.secrets.awsAccessKeyId | quote }}
+            - name: PROD_AWS_SECRET_ACCESS_KEY
               value: {{ .Values.backend.secrets.awsSecretAccessKey | quote }}
             {{- end }}
             - name: S3_BUCKET_NAME

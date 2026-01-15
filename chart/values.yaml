@@ -45,6 +45,8 @@ backend:
     secretName: xlsforms-s3-creds
     # If secrets.enabled is true, these keys will be used from the secret
     # Otherwise, you can set values directly (not recommended for production)
+    # Note: In production, these same credentials are used for both sets of S3
+    # variables used in the application
     awsAccessKeyId: ""
     awsSecretAccessKey: ""
 

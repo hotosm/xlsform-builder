@@ -59,6 +59,8 @@ services:
       - S3_ENDPOINT=http://minio:9000
       - S3_EXTERNAL_ENDPOINT=http://localhost:9000
       - USE_PATH_STYLE=true
+      # These variables are for uploading the converted XForm for display in
+      # the production ODK WebForms Preview website ()
       - PROD_AWS_ACCESS_KEY_ID=${PROD_AWS_ACCESS_KEY_ID}
       - PROD_AWS_SECRET_ACCESS_KEY=${PROD_AWS_SECRET_ACCESS_KEY}
     depends_on:

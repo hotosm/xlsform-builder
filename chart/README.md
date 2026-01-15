@@ -24,10 +24,11 @@ kubectl create secret generic xlsforms-s3-creds \
   --namespace=field
 ```
 
-Or a sealed secret:
+**Note:** In production deployments, the same credentials are used for both
+regular sets of S3 credentials (XLSForm upload and staging XForms). The separation
+between these variables is only used during development alongside MinIO.
 
-```bash
-Create sealed-secret:
+Or a sealed secret:
 
 ```bash
 kubectl create secret generic xlsforms-s3-creds \
@@ -41,7 +42,11 @@ kubeseal -f secret.yaml -w sealed-secret.yaml
 
 **Note:** If using AWS IAM roles (IRSA) or instance profiles,
 you may not need this secret. The backend will use the default
-AWS credential chain if credentials are not provided.
+AWS credential chain if credentials are not provided. However, the backend
+requires `PROD_AWS_ACCESS_KEY_ID` and `PROD_AWS_SECRET_ACCESS_KEY` environment
+variables to be set. In production deployments, these are automatically set
+to the same values as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` from
+the secret. The separation is only needed for local development.
 
 ### Configure Backend to Use Secret
 
