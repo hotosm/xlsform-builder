@@ -24,6 +24,11 @@ spec:
         - name: frontend
           image: "{{ .Values.image.frontend.repository }}:{{ .Values.image.frontend.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.frontend.pullPolicy }}
+          env:
+            - name: VITE_API_URL
+              value: {{ .Values.frontend.env.apiUrl | quote }}
+            - name: VITE_METADATA_URL
+              value: {{ .Values.frontend.env.metadataUrl | quote }}
           ports:
             - name: http
               containerPort: {{ .Values.service.frontend.port }}

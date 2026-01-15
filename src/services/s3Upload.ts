@@ -1,5 +1,10 @@
-// TODO: Update this URL when the backend service is deployed
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.xlsforms.field.hotosm.org';
+import { getRuntimeConfig } from '@/utils/runtimeConfig';
+
+const API_BASE_URL = getRuntimeConfig('VITE_API_URL', 'https://api.xlsforms.field.hotosm.org');
+const METADATA_URL = getRuntimeConfig(
+  'VITE_METADATA_URL',
+  'https://xlsforms.s3.amazonaws.com/metadata.json'
+);
 
 export async function getPreSignedUrl(
   fileName: string,
@@ -107,10 +112,7 @@ export async function uploadJsonToS3(data: unknown, uploadUrl: string): Promise<
 }
 
 export async function fetchMetadata(): Promise<{ forms: FormMetadata[] }> {
-  const metadataUrl =
-    import.meta.env.VITE_METADATA_URL || 'https://xlsforms.s3.amazonaws.com/metadata.json';
-
-  const cacheBustUrl = `${metadataUrl}?t=${Date.now()}`;
+  const cacheBustUrl = `${METADATA_URL}?t=${Date.now()}`;
 
   const response = await fetch(cacheBustUrl, {
     cache: 'no-store',

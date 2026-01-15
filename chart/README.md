@@ -85,5 +85,11 @@ Key configuration values:
 - `ingress.backend.hostname`: Backend API hostname (default: `api.xlsforms.field.hotosm.org`)
 - `image.backend.tag`: Backend image tag
 - `image.frontend.tag`: Frontend image tag
+- `frontend.env.apiUrl`: Backend API URL for frontend to use (default: `https://api.xlsforms.field.hotosm.org`)
+- `frontend.env.metadataUrl`: S3 metadata.json URL (default: `https://xlsforms.s3.amazonaws.com/metadata.json`)
+
+**Note:** The frontend uses runtime configuration injected via environment variables.
+These are used to generate a `config.js` file at container startup, allowing the
+frontend to work with different API URLs without rebuilding the image.
 
 See `values.yaml` for all available options.
