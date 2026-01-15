@@ -72,6 +72,8 @@ spec:
             {{- end }}
             - name: USE_PATH_STYLE
               value: {{ .Values.backend.env.usePathStyle | quote }}
+            - name: PYXFORM_URL
+              value: "http://{{ include "xlsform-builder.pyxformFullname" . }}:{{ .Values.service.pyxform.port }}/api/v1/convert"
           ports:
             - name: http
               containerPort: 3001

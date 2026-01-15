@@ -1,6 +1,7 @@
 replicaCount:
   backend: 1
   frontend: 1
+  pyxform: 1
 
 image:
   backend:
@@ -13,6 +14,10 @@ image:
     # Override tag version; default Chart.AppVersion
     tag: ""
     pullPolicy: IfNotPresent
+  pyxform:
+    repository: ghcr.io/getodk/pyxform-http
+    tag: "latest"
+    pullPolicy: IfNotPresent
 
 frontend:
   env:
@@ -24,6 +29,9 @@ service:
     type: ClusterIP
     port: 3001
   frontend:
+    type: ClusterIP
+    port: 80
+  pyxform:
     type: ClusterIP
     port: 80
 
@@ -58,6 +66,12 @@ backend:
 resources:
   backend: {}
   frontend: {}
+  pyxform: {}
+
+pyxform:
+  healthCheck:
+    enabled: false
+    path: /
 
 nodeSelector: {}
 

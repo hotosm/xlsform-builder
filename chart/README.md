@@ -1,7 +1,8 @@
 # XLSForm Builder Helm Chart
 
 This Helm chart deploys the XLSForm Builder application,
-consisting of a backend API service and a frontend web application.
+consisting of a backend API service, a frontend web application, and
+a pyxform-http service for XLSForm to XForm conversion.
 
 ## Prerequisites
 
@@ -85,11 +86,18 @@ Key configuration values:
 - `ingress.backend.hostname`: Backend API hostname (default: `api.xlsforms.field.hotosm.org`)
 - `image.backend.tag`: Backend image tag
 - `image.frontend.tag`: Frontend image tag
+- `image.pyxform.tag`: Pyxform-http image tag (default: `latest`)
 - `frontend.env.apiUrl`: Backend API URL for frontend to use (default: `https://api.xlsforms.field.hotosm.org`)
 - `frontend.env.metadataUrl`: S3 metadata.json URL (default: `https://xlsforms.s3.amazonaws.com/metadata.json`)
+- `pyxform.healthCheck.enabled`: Enable health checks for pyxform service (default: `false`)
+- `pyxform.healthCheck.path`: Health check path (default: `/`)
 
 **Note:** The frontend uses runtime configuration injected via environment variables.
 These are used to generate a `config.js` file at container startup, allowing the
 frontend to work with different API URLs without rebuilding the image.
+
+**Note:** The backend automatically connects to the pyxform service via the
+`PYXFORM_URL` environment variable, which is set to the pyxform service URL
+based on the Helm release name.
 
 See `values.yaml` for all available options.

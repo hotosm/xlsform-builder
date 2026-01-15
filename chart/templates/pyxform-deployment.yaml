@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "xlsform-builder.pyxformFullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "xlsform-builder.name" . }}
+    app.kubernetes.io/component: pyxform
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount.pyxform }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "xlsform-builder.name" . }}
+      app.kubernetes.io/component: pyxform
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "xlsform-builder.name" . }}
+        app.kubernetes.io/component: pyxform
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: pyxform
+          image: "{{ .Values.image.pyxform.repository }}:{{ .Values.image.pyxform.tag }}"
+          imagePullPolicy: {{ .Values.image.pyxform.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.pyxform.port }}
+          {{- if .Values.pyxform.healthCheck.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.pyxform.healthCheck.path }}
+              port: http
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.pyxform.healthCheck.path }}
+              port: http
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources.pyxform | nindent 12 }}

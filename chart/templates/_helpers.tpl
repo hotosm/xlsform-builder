@@ -22,3 +22,7 @@
 {{- define "xlsform-builder.frontendFullname" -}}
 {{- printf "%s-frontend" (include "xlsform-builder.fullname" .) -}}
 {{- end -}}
+
+{{- define "xlsform-builder.pyxformFullname" -}}
+{{- printf "%s-pyxform" (include "xlsform-builder.fullname" .) -}}
+{{- end -}}
