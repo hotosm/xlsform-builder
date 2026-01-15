@@ -14,6 +14,11 @@ image:
     tag: ""
     pullPolicy: IfNotPresent
 
+frontend:
+  env:
+    apiUrl: "https://api.xlsforms.field.hotosm.org"
+    metadataUrl: "https://xlsforms.s3.amazonaws.com/metadata.json"
+
 service:
   backend:
     type: ClusterIP
@@ -49,11 +54,6 @@ backend:
     # variables used in the application
     awsAccessKeyId: ""
     awsSecretAccessKey: ""
-
-frontend:
-  env:
-    apiUrl: "https://api.xlsforms.field.hotosm.org"
-    metadataUrl: "https://xlsforms.s3.amazonaws.com/metadata.json"
 
 resources:
   backend: {}
