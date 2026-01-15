@@ -50,6 +50,11 @@ backend:
     awsAccessKeyId: ""
     awsSecretAccessKey: ""
 
+frontend:
+  env:
+    apiUrl: "https://api.xlsforms.field.hotosm.org"
+    metadataUrl: "https://xlsforms.s3.amazonaws.com/metadata.json"
+
 resources:
   backend: {}
   frontend: {}

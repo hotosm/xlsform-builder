@@ -6,6 +6,8 @@ import '@webawesome/button/button.js';
 import '@webawesome/card/card.js';
 import '@webawesome/spinner/spinner.js';
 
+import { getRuntimeConfig } from '@/utils/runtimeConfig';
+
 const props = defineProps<{
   id: string;
   title: string;
@@ -54,7 +56,7 @@ function openExternalLink() {
 async function previewForm() {
   isConverting.value = true;
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const apiUrl = getRuntimeConfig('VITE_API_URL', 'https://api.xlsforms.field.hotosm.org');
     const response = await fetch(`${apiUrl}/api/convert`, {
       method: 'POST',
       headers: {

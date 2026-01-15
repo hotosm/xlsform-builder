@@ -6,10 +6,14 @@ import '@webawesome/spinner/spinner.js';
 
 import FormRecord from '../components/FormRecord.vue';
 
+import { getRuntimeConfig } from '@/utils/runtimeConfig';
+
 const forms = ref<FormMetadata[]>([]);
 const loading = ref(true);
-const formsUrl =
-  import.meta.env.VITE_METADATA_URL || 'https://xlsforms.s3.amazonaws.com/metadata.json';
+const formsUrl = getRuntimeConfig(
+  'VITE_METADATA_URL',
+  'https://xlsforms.s3.amazonaws.com/metadata.json'
+);
 
 onMounted(async () => {
   try {
