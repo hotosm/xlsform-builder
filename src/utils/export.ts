@@ -17,9 +17,7 @@ export function flattenChoices(choices: ChoiceList[], languages: string[]): Surv
       Object.assign(row, expandLocalized('label', choice.label, languages));
 
       if (choice.extra) {
-        for (const [key, value] of Object.entries(choice.extra)) {
-          row[key] = value;
-        }
+        Object.assign(row, choice.extra);
       }
 
       rows.push(row);
@@ -39,9 +37,7 @@ export function flattenSettings(settings: FormSettings): SurveyRow[] {
   }
 
   if (settings.extra) {
-    for (const [key, value] of Object.entries(settings.extra)) {
-      row[key] = value;
-    }
+    Object.assign(row, settings.extra);
   }
 
   return [row];

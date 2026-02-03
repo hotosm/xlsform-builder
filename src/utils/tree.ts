@@ -110,9 +110,6 @@ export function expandLocalized(
 ): Record<string, string> {
   const xlsKey = COLUMN_MAP[key] ?? key;
   if (typeof value === 'string') {
-    if (languages.length === 0) {
-      return { [xlsKey]: value };
-    }
     return { [xlsKey]: value };
   }
   const result: Record<string, string> = {};
@@ -170,9 +167,7 @@ export function flattenTree(tree: SurveyNode[], languages: string[]): FlattenRes
       }
 
       if (node.extra) {
-        for (const [key, value] of Object.entries(node.extra)) {
-          row[key] = value;
-        }
+        Object.assign(row, node.extra);
       }
 
       const rowIndex = rows.length;
