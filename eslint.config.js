@@ -40,6 +40,7 @@ export default [
         sessionStorage: 'readonly',
         navigator: 'readonly',
         location: 'readonly',
+        structuredClone: 'readonly',
       },
     },
     plugins: {

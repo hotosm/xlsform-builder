@@ -28,6 +28,7 @@ backend/.env
 *.njsproj
 *.sln
 *.sw?
+*xlsx
 
 # Backend
 backend/backend
