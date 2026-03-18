@@ -2,6 +2,20 @@ volumes:
   minio_data:
 
 services:
+  llama:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    platform: linux/amd64
+    volumes:
+      - ./llm_server/models:/models
+    command: >
+      -m /models/Qwen2.5-3B-Instruct-Q4_K_M.gguf
+      --host 0.0.0.0
+      --port 8080
+      --ctx-size 4096
+      --n-predict 2048
+      -ngl 35
+    ports:
+      - "8080:8080"
   # MinIO - Local S3-compatible storage
   minio:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z
@@ -63,6 +77,7 @@ services:
       # the production ODK WebForms Preview website ()
       - PROD_AWS_ACCESS_KEY_ID=${PROD_AWS_ACCESS_KEY_ID}
       - PROD_AWS_SECRET_ACCESS_KEY=${PROD_AWS_SECRET_ACCESS_KEY}
+      - LLAMA_URL=http://llama:8080
     depends_on:
       minio:
         condition: service_healthy
