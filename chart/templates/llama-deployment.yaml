@@ -1,0 +1,88 @@
+{{- if .Values.llama.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "xlsform-builder.llamaFullname" . }}
+  labels:
+    {{- include "xlsform-builder.labels" . | nindent 4 }}
+    app.kubernetes.io/component: llama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "xlsform-builder.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: llama
+  template:
+    metadata:
+      labels:
+        {{- include "xlsform-builder.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: llama
+    spec:
+      initContainers:
+        - name: llm_model
+          image: alpine:latest
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -f /models/{{ .Values.llama.modelFilename }} ]; then
+                echo "Downloading model..."
+                apk add --no-cache curl
+                curl -L {{ .Values.llama.modelUrl }} -o /models/{{ .Values.llama.modelFilename }}
+              else
+                echo "Model already exists"
+              fi
+          volumeMounts:
+            - name: models
+              mountPath: /models
+      containers:
+        - name: llama
+          image: "{{ .Values.image.llama.repository }}:{{ .Values.image.llama.tag }}"
+          imagePullPolicy: {{ .Values.image.llama.pullPolicy }}
+          args:
+            - "-m"
+            - "/models/{{ .Values.llama.modelFilename }}"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "8080"
+            - "--ctx-size"
+            - "4096"
+            - "--n-predict"
+            - "2048"
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.llama.resources | nindent 12 }}
+          volumeMounts:
+            - name: models
+              mountPath: /models
+      volumes:
+        - name: models
+          {{- if .Values.llama.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "xlsform-builder.llamaFullname" . }}-models
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+---
+{{- if .Values.llama.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "xlsform-builder.llamaFullname" . }}-models
+  labels:
+    {{- include "xlsform-builder.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.llama.persistence.size }}
+  {{- if .Values.llama.persistence.storageClass }}
+  storageClassName: {{ .Values.llama.persistence.storageClass }}
+  {{- end }}
+{{- end }}
+{{- end }}

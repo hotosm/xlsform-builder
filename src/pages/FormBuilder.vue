@@ -73,7 +73,10 @@ function handleDownload() {
 
     <div v-if="isGenerating" class="loading-state">
       <wa-spinner></wa-spinner>
-      <p>Generating your form...</p>
+      <div class="loading-text">
+        <p>Generating your form...</p>
+        <p class="loading-hint">This may take a few moments depending on the form complexity.</p>
+      </div>
     </div>
 
     <div v-if="errorMessage" class="error-message">
@@ -132,10 +135,20 @@ function handleDownload() {
   padding: $spacing-lg;
   justify-content: center;
 
+  .loading-text {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+  }
+
   p {
     margin: 0;
     color: $color-text-primary;
     opacity: 0.7;
+
+    &.loading-hint {
+      font-size: 0.875rem;
+    }
   }
 }
 

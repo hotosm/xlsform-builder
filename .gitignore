@@ -34,5 +34,8 @@ backend/.env
 backend/backend
 backend/tmp
 
+# LLM Models
+llm_server/models/*.gguf
+
 # Helm chart
 xlsform-builder-*.tgz
