@@ -74,6 +74,12 @@ spec:
               value: {{ .Values.backend.env.usePathStyle | quote }}
             - name: PYXFORM_URL
               value: "http://{{ include "xlsform-builder.pyxformFullname" . }}:{{ .Values.service.pyxform.port }}/api/v1/convert"
+            - name: LLAMA_URL
+              {{- if .Values.llama.enabled }}
+              value: "http://{{ include "xlsform-builder.llamaFullname" . }}:8080"
+              {{- else }}
+              value: ""
+              {{- end }}
           ports:
             - name: http
               containerPort: 3001

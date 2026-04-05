@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -521,7 +522,7 @@ func generateFormHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	llamaURL := getEnv("LLAMA_URL", "http://localhost:8080")
-	println("LLAMA_URL:", llamaURL)
+
 
 	chatReq := ChatCompletionRequest{
 		Messages: []ChatMessage{
@@ -541,7 +542,16 @@ func generateFormHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := &http.Client{Timeout: 120 * time.Second}
+	client := &http.Client{
+		Transport: &http.Transport{
+			DialContext: (&net.Dialer{
+				Timeout:   5 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
+			TLSHandshakeTimeout: 5 * time.Second,
+		},
+		Timeout: 120 * time.Second,
+	}
 	resp, err := client.Post(llamaURL+"/v1/chat/completions", "application/json", bytes.NewReader(reqBody))
 	if err != nil {
 		log.Printf("Failed to call LLM service: %v", err)
