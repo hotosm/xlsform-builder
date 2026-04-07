@@ -1,0 +1,19 @@
+{{- if .Values.llama.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "xlsform-builder.llamaFullname" . }}
+  labels:
+    {{- include "xlsform-builder.labels" . | nindent 4 }}
+    app.kubernetes.io/component: llama
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "xlsform-builder.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: llama
+{{- end }}

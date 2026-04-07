@@ -36,3 +36,4 @@ backend/tmp
 
 # Helm chart
 xlsform-builder-*.tgz
+llm_server/models/

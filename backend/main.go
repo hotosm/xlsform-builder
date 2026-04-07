@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -56,6 +57,37 @@ type PyxformResponse struct {
 	Itemsets interface{} `json:"itemsets"`
 }
 
+type GenerateRequest struct {
+	Prompt string `json:"prompt"`
+}
+
+type ChatMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type ChatCompletionRequest struct {
+	Messages       []ChatMessage     `json:"messages"`
+	Temperature    float64           `json:"temperature"`
+	MaxTokens      int               `json:"max_tokens"`
+	ResponseFormat map[string]string `json:"response_format,omitempty"`
+}
+
+type ChatCompletionResponse struct {
+	Choices []struct {
+		Message ChatMessage `json:"message"`
+	} `json:"choices"`
+}
+
+type GenerateResponse struct {
+	Document json.RawMessage `json:"document"`
+}
+
+type GenerateErrorResponse struct {
+	Error string `json:"error"`
+	Raw   string `json:"raw,omitempty"`
+}
+
 var (
 	s3Client           *s3.Client
 	prodS3Client       *s3.Client
@@ -87,6 +119,7 @@ func main() {
 	mux.HandleFunc("/api/presigned-url", presignedUploadURLHandler)
 	mux.HandleFunc("/api/presigned-download-url", presignedDownloadURLHandler)
 	mux.HandleFunc("/api/convert", convertXLSFormHandler)
+	mux.HandleFunc("/api/generate", generateFormHandler)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   strings.Split(getEnv("ALLOWED_ORIGINS", "*"), ","),
@@ -469,6 +502,118 @@ func uploadXFormToS3(xmlData []byte, filename string) (string, error) {
 
 	log.Printf("Uploaded XForm to production S3: %s", fileURL)
 	return fileURL, nil
+}
+
+func generateFormHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		respondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	var req GenerateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.Prompt == "" {
+		respondWithError(w, http.StatusBadRequest, "prompt is required")
+		return
+	}
+
+	llamaURL := getEnv("LLAMA_URL", "http://localhost:8080")
+
+
+	chatReq := ChatCompletionRequest{
+		Messages: []ChatMessage{
+			{Role: "system", Content: systemPrompt},
+			{Role: "user", Content: req.Prompt},
+		},
+		Temperature: 0.3,
+		MaxTokens:   2048,
+		ResponseFormat: map[string]string{
+			"type": "json_object",
+		},
+	}
+
+	reqBody, err := json.Marshal(chatReq)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to build request")
+		return
+	}
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			DialContext: (&net.Dialer{
+				Timeout:   5 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
+			TLSHandshakeTimeout: 5 * time.Second,
+		},
+		Timeout: 120 * time.Second,
+	}
+	resp, err := client.Post(llamaURL+"/v1/chat/completions", "application/json", bytes.NewReader(reqBody))
+	if err != nil {
+		log.Printf("Failed to call LLM service: %v", err)
+		respondWithError(w, http.StatusBadGateway, "LLM service unavailable")
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to read LLM response")
+		return
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("LLM service returned status %d: %s", resp.StatusCode, string(body))
+		respondWithError(w, http.StatusBadGateway, "LLM service error")
+		return
+	}
+
+	var chatResp ChatCompletionResponse
+	if err := json.Unmarshal(body, &chatResp); err != nil {
+		log.Printf("Failed to parse LLM response: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Failed to parse LLM response")
+		return
+	}
+
+	if len(chatResp.Choices) == 0 {
+		respondWithError(w, http.StatusInternalServerError, "LLM returned no choices")
+		return
+	}
+
+	content := chatResp.Choices[0].Message.Content
+
+	// Strip markdown code fences if present
+	content = strings.TrimSpace(content)
+	if strings.HasPrefix(content, "```") {
+		lines := strings.SplitN(content, "\n", 2)
+		if len(lines) > 1 {
+			content = lines[1]
+		}
+		if idx := strings.LastIndex(content, "```"); idx != -1 {
+			content = content[:idx]
+		}
+		content = strings.TrimSpace(content)
+	}
+
+	// Validate JSON
+	var doc json.RawMessage
+	if err := json.Unmarshal([]byte(content), &doc); err != nil {
+		log.Printf("LLM returned invalid JSON: %v", err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		json.NewEncoder(w).Encode(GenerateErrorResponse{
+			Error: "LLM returned invalid JSON",
+			Raw:   content,
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(GenerateResponse{Document: doc})
 }
 
 func respondWithError(w http.ResponseWriter, code int, message string) {
