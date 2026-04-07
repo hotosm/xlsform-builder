@@ -7,13 +7,12 @@ metadata:
     {{- include "xlsform-builder.labels" . | nindent 4 }}
     app.kubernetes.io/component: llama
 spec:
-  type: ClusterIP
-  ports:
-    - port: 8080
-      targetPort: http
-      protocol: TCP
-      name: http
+  type: {{ .Values.service.llama.type }}
   selector:
     {{- include "xlsform-builder.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: llama
+  ports:
+    - name: http
+      port: {{ .Values.service.llama.port }}
+      targetPort: http
 {{- end }}

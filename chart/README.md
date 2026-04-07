@@ -2,7 +2,8 @@
 
 This Helm chart deploys the XLSForm Builder application,
 consisting of a backend API service, a frontend web application, and
-a pyxform-http service for XLSForm to XForm conversion.
+a pyxform-http service for XLSForm to XForm conversion, plus an optional
+llama.cpp server for local LLM-backed form generation.
 
 ## Prerequisites
 
@@ -87,6 +88,9 @@ Key configuration values:
 - `image.backend.tag`: Backend image tag
 - `image.frontend.tag`: Frontend image tag
 - `image.pyxform.tag`: Pyxform-http image tag (default: `latest`)
+- `image.llama.tag`: Llama server image tag
+- `llama.enabled`: Deploy the llama server and configure the backend to use it (default: `true`)
+- `llama.modelFilename`: Model file loaded by the llama server
 - `frontend.env.apiUrl`: Backend API URL for frontend to use (default: `https://api.xlsforms.field.hotosm.org`)
 - `frontend.env.metadataUrl`: S3 metadata.json URL (default: `https://xlsforms.s3.amazonaws.com/metadata.json`)
 - `pyxform.healthCheck.enabled`: Enable health checks for pyxform service (default: `false`)

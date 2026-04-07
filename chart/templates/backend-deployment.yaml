@@ -3,22 +3,19 @@ kind: Deployment
 metadata:
   name: {{ include "xlsform-builder.backendFullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "xlsform-builder.name" . }}
+    {{- include "xlsform-builder.labels" . | nindent 4 }}
     app.kubernetes.io/component: backend
-    app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   replicas: {{ .Values.replicaCount.backend }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "xlsform-builder.name" . }}
+      {{- include "xlsform-builder.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: backend
-      app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "xlsform-builder.name" . }}
+        {{- include "xlsform-builder.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: backend
-        app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       containers:
         - name: backend
@@ -76,10 +73,12 @@ spec:
               value: "http://{{ include "xlsform-builder.pyxformFullname" . }}:{{ .Values.service.pyxform.port }}/api/v1/convert"
             - name: LLAMA_URL
               {{- if .Values.llama.enabled }}
-              value: "http://{{ include "xlsform-builder.llamaFullname" . }}:8080"
+              value: "http://{{ include "xlsform-builder.llamaFullname" . }}:{{ .Values.service.llama.port }}"
               {{- else }}
               value: ""
               {{- end }}
+            - name: ALLOWED_ORIGINS
+              value: {{ .Values.backend.env.allowedOrigins | default (printf "https://%s" .Values.ingress.frontend.hostname) | quote }}
           ports:
             - name: http
               containerPort: 3001

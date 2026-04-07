@@ -3,22 +3,19 @@ kind: Deployment
 metadata:
   name: {{ include "xlsform-builder.frontendFullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "xlsform-builder.name" . }}
+    {{- include "xlsform-builder.labels" . | nindent 4 }}
     app.kubernetes.io/component: frontend
-    app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   replicas: {{ .Values.replicaCount.frontend }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "xlsform-builder.name" . }}
+      {{- include "xlsform-builder.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: frontend
-      app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "xlsform-builder.name" . }}
+        {{- include "xlsform-builder.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: frontend
-        app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       containers:
         - name: frontend

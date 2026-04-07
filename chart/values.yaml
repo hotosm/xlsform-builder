@@ -2,6 +2,7 @@ replicaCount:
   backend: 1
   frontend: 1
   pyxform: 1
+  llama: 1
 
 image:
   backend:
@@ -19,25 +20,14 @@ image:
     tag: "latest"
     pullPolicy: IfNotPresent
   llama:
-    repository: ghcr.io/ggml-org/llama.cpp
-    tag: "server"
+    repository: ghcr.io/hotosm/xlsform-builder/llama
+    # Override tag version; default Chart.AppVersion
+    tag: ""
     pullPolicy: IfNotPresent
 
 llama:
   enabled: true
-  modelUrl: "https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf"
-  modelFilename: "Qwen2.5-3B-Instruct-Q4_K_M.gguf"
-  persistence:
-    enabled: true
-    size: 5Gi
-    storageClass: ""
-  resources:
-    requests:
-      cpu: "1"
-      memory: "4Gi"
-    limits:
-      cpu: "2"
-      memory: "8Gi"
+  modelFilename: "Qwen2.5-1.5B-Instruct-Q4_K_M.gguf"
 
 frontend:
   env:
@@ -54,6 +44,9 @@ service:
   pyxform:
     type: ClusterIP
     port: 80
+  llama:
+    type: ClusterIP
+    port: 8080
 
 ingress:
   enabled: true
@@ -87,6 +80,13 @@ resources:
   backend: {}
   frontend: {}
   pyxform: {}
+  llama:
+    requests:
+      cpu: "1"
+      memory: "2Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
 
 pyxform:
   healthCheck:

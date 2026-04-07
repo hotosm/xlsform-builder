@@ -3,15 +3,13 @@ kind: Service
 metadata:
   name: {{ include "xlsform-builder.pyxformFullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "xlsform-builder.name" . }}
+    {{- include "xlsform-builder.labels" . | nindent 4 }}
     app.kubernetes.io/component: pyxform
-    app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   type: {{ .Values.service.pyxform.type }}
   selector:
-    app.kubernetes.io/name: {{ include "xlsform-builder.name" . }}
+    {{- include "xlsform-builder.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: pyxform
-    app.kubernetes.io/instance: {{ .Release.Name }}
   ports:
     - name: http
       port: {{ .Values.service.pyxform.port }}
