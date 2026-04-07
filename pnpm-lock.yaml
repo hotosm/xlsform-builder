@@ -69,6 +69,9 @@ importers:
       vitest:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@24.10.1)(sass-embedded@1.93.0)(sass@1.93.0)
+      vue-eslint-parser:
+        specifier: 10.2.0
+        version: 10.2.0(eslint@9.36.0)
       vue-tsc:
         specifier: ^2.2.12
         version: 2.2.12(typescript@5.8.3)

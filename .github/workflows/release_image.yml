@@ -22,3 +22,9 @@ jobs:
     with:
       image_name: ghcr.io/${{ github.repository }}/frontend
       build_target: release
+
+  llama:
+    uses: hotosm/gh-workflows/.github/workflows/image_build.yml@2.0.5
+    with:
+      image_name: ghcr.io/${{ github.repository }}/llama
+      context: llm_server

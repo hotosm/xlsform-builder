@@ -51,6 +51,8 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
+      'no-undef': 'off',
+      'no-unused-vars': 'off',
       'no-redeclare': 'off', // Turn off for TypeScript
       '@typescript-eslint/no-redeclare': 'error', // Use TypeScript version instead
       'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
@@ -102,6 +104,8 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
+      'no-undef': 'off',
+      'no-unused-vars': 'off',
       'no-redeclare': 'off', // Turn off for TypeScript
       '@typescript-eslint/no-redeclare': 'error', // Use TypeScript version instead
       'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',

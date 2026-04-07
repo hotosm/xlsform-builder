@@ -2,32 +2,68 @@ volumes:
   minio_data:
 
 services:
-  # Downloads the model if it doesn't exist
-  llm_model:
-    image: alpine:latest
-    volumes:
-      - ./llm_server/models:/models
-    command: >
-      sh -c "
-      if [ ! -f /models/Qwen2.5-3B-Instruct-Q4_K_M.gguf ]; then
-        echo 'Downloading model...';
-        apk add --no-cache curl;
-        curl -L https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf -o /models/Qwen2.5-3B-Instruct-Q4_K_M.gguf;
-      else
-        echo 'Model already exists';
-      fi
-      "
+  backend:
+    image: ghcr.io/hotosm/xlsform-builder/backend:0.1.3
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - ENVIRONMENT=development
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=minioadmin
+      - AWS_SECRET_ACCESS_KEY=minioadmin
+      - S3_BUCKET_NAME=xlsforms
+      - S3_ENDPOINT=http://minio:9000
+      - S3_EXTERNAL_ENDPOINT=http://localhost:9000
+      - USE_PATH_STYLE=true
+      # These variables are for uploading the converted XForm for display in
+      # the production ODK WebForms Preview website ()
+      - PROD_AWS_ACCESS_KEY_ID=${PROD_AWS_ACCESS_KEY_ID}
+      - PROD_AWS_SECRET_ACCESS_KEY=${PROD_AWS_SECRET_ACCESS_KEY}
+      - LLAMA_URL=http://llama:8080
+      - ALLOWED_ORIGINS=http://localhost:3000
+    depends_on:
+      minio:
+        condition: service_healthy
+      minio-setup:
+        condition: service_completed_successfully
+      llama:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 5s
+      retries: 10
+      start_period: 20s
+      timeout: 5s
+
+  frontend:
+    image: ghcr.io/hotosm/xlsform-builder/frontend:0.1.3
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      # Runtime config - injected via docker-entrypoint.sh at container startup
+      - VITE_API_URL=http://localhost:3001
+      - VITE_METADATA_URL=http://localhost:9000/xlsforms/metadata.json
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
 
   llama:
-    image: ghcr.io/ggml-org/llama.cpp:server
+    image: ghcr.io/hotosm/xlsform-builder/llama:0.1.3
+    build:
+      context: ./llm_server
+      dockerfile: Dockerfile
     platform: linux/amd64
-    depends_on:
-      llm_model:
-        condition: service_completed_successfully
-    volumes:
-      - ./llm_server/models:/models
     command: >
-      -m /models/Qwen2.5-3B-Instruct-Q4_K_M.gguf
+      -m /models/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf
       --host 0.0.0.0
       --port 8080
       --ctx-size 4096
@@ -35,6 +71,13 @@ services:
       -ngl 35
     ports:
       - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 5s
+      retries: 20
+      start_period: 30s
+      timeout: 5s
+
   # MinIO - Local S3-compatible storage
   minio:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z
@@ -74,53 +117,4 @@ services:
 
   pyxform:
     image: ghcr.io/getodk/pyxform-http:latest
-    restart: unless-stopped
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "3001:3001"
-    environment:
-      - PORT=3001
-      - ENVIRONMENT=development
-      - AWS_REGION=us-east-1
-      - AWS_ACCESS_KEY_ID=minioadmin
-      - AWS_SECRET_ACCESS_KEY=minioadmin
-      - S3_BUCKET_NAME=xlsforms
-      - S3_ENDPOINT=http://minio:9000
-      - S3_EXTERNAL_ENDPOINT=http://localhost:9000
-      - USE_PATH_STYLE=true
-      # These variables are for uploading the converted XForm for display in
-      # the production ODK WebForms Preview website ()
-      - PROD_AWS_ACCESS_KEY_ID=${PROD_AWS_ACCESS_KEY_ID}
-      - PROD_AWS_SECRET_ACCESS_KEY=${PROD_AWS_SECRET_ACCESS_KEY}
-      - LLAMA_URL=http://llama:8080
-    depends_on:
-      minio:
-        condition: service_healthy
-      minio-setup:
-        condition: service_completed_successfully
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
-      interval: 5s
-      retries: 10
-      start_period: 20s
-      timeout: 5s
-
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
-      # Runtime config - injected via docker-entrypoint.sh at container startup
-      - VITE_API_URL=http://localhost:3001
-      - VITE_METADATA_URL=http://localhost:9000/xlsforms/metadata.json
-    ports:
-      - "3000:80"
-    depends_on:
-      backend:
-        condition: service_started
     restart: unless-stopped

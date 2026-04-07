@@ -76,7 +76,7 @@ async function handleSubmit() {
     await uploadJsonToS3(updatedMetadata, metadataResponse.uploadUrl);
 
     uploadState.showSuccessDialog = true;
-  } catch (error) {
+  } catch {
     // TODO: Show error to user in a toast/notification
   } finally {
     uploadState.isSubmitting = false;

@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -88,6 +89,66 @@ type GenerateErrorResponse struct {
 	Raw   string `json:"raw,omitempty"`
 }
 
+// XLSFormDocument mirrors the expected LLM output structure.
+type XLSFormDocument struct {
+	Survey    []json.RawMessage `json:"survey"`
+	Choices   []json.RawMessage `json:"choices"`
+	Settings  *XLSFormSettings  `json:"settings"`
+	Languages []string          `json:"languages"`
+}
+
+type XLSFormSettings struct {
+	FormTitle string `json:"formTitle"`
+	FormID    string `json:"formId"`
+}
+
+// rateLimiter tracks per-IP request timestamps for sliding-window rate limiting.
+type rateLimiter struct {
+	mu       sync.Mutex
+	requests map[string][]time.Time
+	limit    int
+	window   time.Duration
+}
+
+func newRateLimiter(limit int, window time.Duration) *rateLimiter {
+	return &rateLimiter{
+		requests: make(map[string][]time.Time),
+		limit:    limit,
+		window:   window,
+	}
+}
+
+func (rl *rateLimiter) allow(ip string) bool {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	now := time.Now()
+	cutoff := now.Add(-rl.window)
+
+	// Prune old entries
+	timestamps := rl.requests[ip]
+	valid := timestamps[:0]
+	for _, t := range timestamps {
+		if t.After(cutoff) {
+			valid = append(valid, t)
+		}
+	}
+
+	if len(valid) >= rl.limit {
+		rl.requests[ip] = valid
+		return false
+	}
+
+	rl.requests[ip] = append(valid, now)
+	return true
+}
+
+const (
+	maxPromptLength  = 2000
+	maxBodySize      = 64 * 1024 // 64 KB
+	maxConcurrentLLM = 3
+)
+
 var (
 	s3Client           *s3.Client
 	prodS3Client       *s3.Client
@@ -96,6 +157,8 @@ var (
 	s3Endpoint         string
 	s3ExternalEndpoint string
 	usePathStyle       bool
+	generateLimiter    *rateLimiter
+	llmSemaphore       chan struct{}
 )
 
 func main() {
@@ -105,6 +168,10 @@ func main() {
 	s3ExternalEndpoint = getEnv("S3_EXTERNAL_ENDPOINT", s3Endpoint)
 	usePathStyle = getEnv("USE_PATH_STYLE", "false") == "true"
 	port := getEnv("PORT", "3001")
+
+	// 5 requests per minute per IP for /api/generate
+	generateLimiter = newRateLimiter(5, time.Minute)
+	llmSemaphore = make(chan struct{}, maxConcurrentLLM)
 
 	if err := initS3Client(); err != nil {
 		log.Fatalf("Failed to initialize S3 client: %v", err)
@@ -211,7 +278,6 @@ func initProdS3Client() error {
 
 	return nil
 }
-
 
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -504,11 +570,69 @@ func uploadXFormToS3(xmlData []byte, filename string) (string, error) {
 	return fileURL, nil
 }
 
+func clientIP(r *http.Request) string {
+	if fwd := r.Header.Get("X-Forwarded-For"); fwd != "" {
+		// First IP in the chain is the original client
+		if i := strings.IndexByte(fwd, ','); i != -1 {
+			return strings.TrimSpace(fwd[:i])
+		}
+		return strings.TrimSpace(fwd)
+	}
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
+}
+
+func validateXLSFormDocument(data []byte) error {
+	var doc XLSFormDocument
+	if err := json.Unmarshal(data, &doc); err != nil {
+		return fmt.Errorf("invalid document structure: %w", err)
+	}
+	if doc.Survey == nil || len(doc.Survey) == 0 {
+		return fmt.Errorf("document missing required field 'survey' or survey is empty")
+	}
+	if doc.Choices == nil {
+		return fmt.Errorf("document missing required field 'choices'")
+	}
+	if doc.Settings == nil {
+		return fmt.Errorf("document missing required field 'settings'")
+	}
+	if doc.Settings.FormTitle == "" {
+		return fmt.Errorf("settings missing required field 'formTitle'")
+	}
+	if doc.Settings.FormID == "" {
+		return fmt.Errorf("settings missing required field 'formId'")
+	}
+	if doc.Languages == nil || len(doc.Languages) == 0 {
+		return fmt.Errorf("document missing required field 'languages' or languages is empty")
+	}
+	return nil
+}
+
 func generateFormHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		respondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
+
+	// Check if LLM is enabled
+	llamaURL := getEnv("LLAMA_URL", "")
+	if llamaURL == "" {
+		respondWithError(w, http.StatusServiceUnavailable, "AI form generation is not available")
+		return
+	}
+
+	// Rate limit by IP
+	ip := clientIP(r)
+	if !generateLimiter.allow(ip) {
+		respondWithError(w, http.StatusTooManyRequests, "Rate limit exceeded. Please wait before trying again.")
+		return
+	}
+
+	// Limit request body size
+	r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
 
 	var req GenerateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -521,8 +645,19 @@ func generateFormHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	llamaURL := getEnv("LLAMA_URL", "http://localhost:8080")
+	if len(req.Prompt) > maxPromptLength {
+		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("prompt exceeds maximum length of %d characters", maxPromptLength))
+		return
+	}
 
+	// Acquire concurrency slot (non-blocking check + blocking wait with timeout)
+	select {
+	case llmSemaphore <- struct{}{}:
+		defer func() { <-llmSemaphore }()
+	case <-time.After(5 * time.Second):
+		respondWithError(w, http.StatusServiceUnavailable, "AI service is busy. Please try again shortly.")
+		return
+	}
 
 	chatReq := ChatCompletionRequest{
 		Messages: []ChatMessage{
@@ -550,7 +685,7 @@ func generateFormHandler(w http.ResponseWriter, r *http.Request) {
 			}).DialContext,
 			TLSHandshakeTimeout: 5 * time.Second,
 		},
-		Timeout: 120 * time.Second,
+		Timeout: 300 * time.Second,
 	}
 	resp, err := client.Post(llamaURL+"/v1/chat/completions", "application/json", bytes.NewReader(reqBody))
 	if err != nil {
@@ -607,6 +742,18 @@ func generateFormHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		json.NewEncoder(w).Encode(GenerateErrorResponse{
 			Error: "LLM returned invalid JSON",
+			Raw:   content,
+		})
+		return
+	}
+
+	// Validate XLSForm document schema
+	if err := validateXLSFormDocument([]byte(content)); err != nil {
+		log.Printf("LLM returned invalid XLSForm document: %v", err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		json.NewEncoder(w).Encode(GenerateErrorResponse{
+			Error: fmt.Sprintf("LLM returned invalid XLSForm: %v", err),
 			Raw:   content,
 		})
 		return

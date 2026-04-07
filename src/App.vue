@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, type Component } from 'vue';
 
 import '@hotosm/ui/dist/components/header/header.js';
 import '@hotosm/ui/dist/style.css';
@@ -11,7 +11,7 @@ import NotFound from './pages/NotFound.vue';
 import { isMobileDevice } from './utils/deviceDetection';
 import '/src/styles/main.scss';
 
-const routes: Record<string, any> = {
+const routes: Record<string, Component> = {
   '/': FormExamples,
   '/upload': FormUpload,
   '/builder': FormBuilder,
