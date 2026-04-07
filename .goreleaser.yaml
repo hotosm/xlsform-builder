@@ -3,7 +3,7 @@ version: 2
 builds:
   - binary: backend
     dir: backend
-    main: main.go
+    main: .
     env:
       - CGO_ENABLED=0
     flags:
