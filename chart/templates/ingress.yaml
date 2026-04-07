@@ -38,6 +38,8 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.backend.hostname }}
     external-dns.alpha.kubernetes.io/ttl: "300"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
 spec:
   {{- if .Values.ingress.className }}
   ingressClassName: {{ .Values.ingress.className }}

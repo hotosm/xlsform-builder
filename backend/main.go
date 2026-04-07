@@ -146,7 +146,7 @@ func (rl *rateLimiter) allow(ip string) bool {
 const (
 	maxPromptLength  = 2000
 	maxBodySize      = 64 * 1024 // 64 KB
-	maxConcurrentLLM = 3
+	maxConcurrentLLM = 1
 )
 
 var (
@@ -655,7 +655,7 @@ func generateFormHandler(w http.ResponseWriter, r *http.Request) {
 	case llmSemaphore <- struct{}{}:
 		defer func() { <-llmSemaphore }()
 	case <-time.After(5 * time.Second):
-		respondWithError(w, http.StatusServiceUnavailable, "AI service is busy. Please try again shortly.")
+		respondWithError(w, http.StatusServiceUnavailable, "AI form generation is already in use. Please wait a few minutes and try again.")
 		return
 	}
 
