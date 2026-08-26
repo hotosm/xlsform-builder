@@ -28,4 +28,14 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // keep WebAwesome cached independently of app deploys
+          if (id.includes('@awesome.me/webawesome')) return 'webawesome';
+        },
+      },
+    },
+  },
 });
