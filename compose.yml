@@ -3,7 +3,7 @@ volumes:
 
 services:
   backend:
-    image: ghcr.io/hotosm/xlsform-builder/backend:0.3.1
+    image: ghcr.io/hotosm/xlsform-builder/backend:0.4.0
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -41,7 +41,7 @@ services:
       timeout: 5s
 
   frontend:
-    image: ghcr.io/hotosm/xlsform-builder/frontend:0.3.1
+    image: ghcr.io/hotosm/xlsform-builder/frontend:0.4.0
     build:
       context: .
       dockerfile: Dockerfile
@@ -57,7 +57,7 @@ services:
     restart: unless-stopped
 
   llama:
-    image: ghcr.io/hotosm/xlsform-builder/llama:0.3.1
+    image: ghcr.io/hotosm/xlsform-builder/llama:0.4.0
     build:
       context: ./llm_server
       dockerfile: Dockerfile

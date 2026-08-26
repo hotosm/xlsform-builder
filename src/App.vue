@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, type Component } from 'vue';
 
-import '@hotosm/ui/dist/components/header/header.js';
-import '@hotosm/ui/dist/style.css';
-
 import FormBuilder from './pages/FormBuilder.vue';
 import FormExamples from './pages/FormExamples.vue';
 import FormUpload from './pages/FormUpload.vue';
@@ -64,7 +61,10 @@ const currentView = computed(() => {
     :drawerLinks="drawerLinks"
     :drawer="isMobile"
     size="small"
-  ></hot-header>
+  >
+    <!-- HOT tool switcher, top right of the header -->
+    <hotosm-tool-menu slot="auth"></hotosm-tool-menu>
+  </hot-header>
 
   <div class="container">
     <component :is="currentView.is" v-bind="currentView.props" />

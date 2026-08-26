@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import { reactive } from 'vue';
 
-import '@hotosm/ui/dist/components/file-input-dropzone/file-input-dropzone.js';
-import '@webawesome/button/button.js';
-import '@webawesome/dialog/dialog.js';
-import '@webawesome/icon/icon.js';
-import '@webawesome/input/input.js';
-import '@webawesome/textarea/textarea.js';
-
 import { fetchMetadata, getPreSignedUrl, uploadJsonToS3, uploadToS3 } from '@/services/s3Upload';
 import { isMobileDevice } from '@/utils/deviceDetection';
 import { generateFormId, generateUniqueFileName } from '@/utils/fileUtils';

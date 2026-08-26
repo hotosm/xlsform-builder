@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-import '@webawesome/button/button.js';
-import '@webawesome/input/input.js';
-import '@webawesome/spinner/spinner.js';
-
 import FormPreview from '@/components/FormPreview.vue';
 import { generateForm } from '@/services/llmService';
 import { exportToXlsx } from '@/utils/export';

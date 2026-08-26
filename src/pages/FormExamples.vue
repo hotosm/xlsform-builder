@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
-import '@webawesome/button/button.js';
-import '@webawesome/spinner/spinner.js';
-
 import FormRecord from '../components/FormRecord.vue';
 
 import { getRuntimeConfig } from '@/utils/runtimeConfig';

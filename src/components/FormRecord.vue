@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import '@webawesome/badge/badge.js';
-import '@webawesome/button/button.js';
-import '@webawesome/card/card.js';
-import '@webawesome/spinner/spinner.js';
-
 import { getRuntimeConfig } from '@/utils/runtimeConfig';
 
 const props = defineProps<{

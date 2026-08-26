@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import '@webawesome/badge/badge.js';
-
 import type { XLSFormDocument, SurveyNode } from '@/types/xlsform';
 
 defineProps<{
