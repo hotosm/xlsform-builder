@@ -12,7 +12,7 @@ RUN pnpm run build
 
 
 
-FROM nginx:1.29-alpine AS release
+FROM nginx:1.31-alpine AS release
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY docker-entrypoint.sh /docker-entrypoint.sh

@@ -6,6 +6,3 @@
 .gitignore
 backend
 tmp
-
-# Let Docker generate go.sum during build
-go.sum
