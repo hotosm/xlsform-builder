@@ -35,15 +35,21 @@ const drawerLinks = navItems.map((item) => ({
 const isMobile = isMobileDevice();
 
 // Handle routes
-const currentPath = ref(window.location.hash);
+const hashPath = () => window.location.hash.slice(1) || '/';
+const currentPath = ref(hashPath());
 
 window.addEventListener('hashchange', () => {
-  currentPath.value = window.location.hash;
+  currentPath.value = hashPath();
 });
+
+// Keep the header's underline on the current page
+const activeTabIndex = computed(() =>
+  navItems.findIndex((item) => item.path === currentPath.value),
+);
 
 const currentView = computed(() => {
   return {
-    is: routes[currentPath.value.slice(1) || '/'] || NotFound,
+    is: routes[currentPath.value] || NotFound,
     props: {
       // instead we fetch this directly on the FormExamples page
       // forms: forms.value
@@ -60,6 +66,8 @@ const currentView = computed(() => {
     :tabs="headerTabs"
     :drawerLinks="drawerLinks"
     :drawer="isMobile"
+    :selectedTab="activeTabIndex"
+    :activeTabIndex="activeTabIndex"
     size="small"
   >
     <!-- HOT tool switcher, top right of the header -->
