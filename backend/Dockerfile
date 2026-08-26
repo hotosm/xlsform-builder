@@ -1,10 +1,9 @@
-FROM golang:1.24 AS build
+FROM golang:1.27 AS build
 WORKDIR /code
-COPY go.mod ./
+COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go mod tidy
-RUN CGO_ENABLED=0 GOOS=linux go build -o /code/backend .
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o /code/backend .
 
 FROM gcr.io/distroless/static-debian13:nonroot AS release
 WORKDIR /code

@@ -223,6 +223,11 @@ func initS3Client() error {
 	var cfg aws.Config
 	var err error
 
+	// Default CRC32 request checksums break presigned PUTs to MinIO/rustfs.
+	checksumWhenRequired := config.WithRequestChecksumCalculation(
+		aws.RequestChecksumCalculationWhenRequired,
+	)
+
 	if accessKeyID != "" && secretAccessKey != "" {
 		cfg, err = config.LoadDefaultConfig(ctx,
 			config.WithRegion(region),
@@ -231,10 +236,12 @@ func initS3Client() error {
 				secretAccessKey,
 				"",
 			)),
+			checksumWhenRequired,
 		)
 	} else {
 		cfg, err = config.LoadDefaultConfig(ctx,
 			config.WithRegion(region),
+			checksumWhenRequired,
 		)
 	}
 
