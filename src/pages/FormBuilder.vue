@@ -77,13 +77,13 @@ function handleDownload() {
 
     <div v-if="errorMessage" class="error-message">
       <p>{{ errorMessage }}</p>
-      <wa-button variant="neutral" size="small" @click="errorMessage = ''">Dismiss</wa-button>
+      <wa-button variant="neutral" size="s" @click="errorMessage = ''">Dismiss</wa-button>
     </div>
 
     <div v-if="generatedDoc && !isGenerating" class="result-card">
       <div class="result-header">
         <h3>{{ generatedDoc.settings.formTitle }}</h3>
-        <wa-button variant="danger" size="small" @click="handleDownload">
+        <wa-button variant="danger" size="s" @click="handleDownload">
           Download .xlsx
         </wa-button>
       </div>

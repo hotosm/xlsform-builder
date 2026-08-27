@@ -157,7 +157,7 @@ function handleViewExamples() {
       </div>
 
       <div class="form-actions">
-        <wa-button type="submit" variant="danger" size="medium" :loading="uploadState.isSubmitting">
+        <wa-button type="submit" variant="danger" size="m" :loading="uploadState.isSubmitting">
           Upload Form
         </wa-button>
       </div>
