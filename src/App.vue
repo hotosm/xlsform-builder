@@ -68,7 +68,7 @@ const currentView = computed(() => {
     :drawer="isMobile"
     :selectedTab="activeTabIndex"
     :activeTabIndex="activeTabIndex"
-    size="small"
+    size="s"
   >
     <!-- HOT tool switcher, top right of the header -->
     <hotosm-tool-menu slot="auth"></hotosm-tool-menu>
