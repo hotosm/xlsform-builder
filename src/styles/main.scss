@@ -23,12 +23,12 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: $font-barlow-bold;
+  font-weight: $font-weight-bold;
   color: $color-text-heading;
 }
 
 hot-header {
-  font-family: $font-base-semibold;
+  font-weight: $font-weight-semibold;
 }
 
 // Global link styles

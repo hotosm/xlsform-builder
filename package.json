@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@awesome.me/webawesome": "3.11.0",
-    "@hotosm/ui": "^1.0.1",
+    "@hotosm/ui": "^2.0.0",
     "vue": "^3.5.17",
     "xlsx": "^0.18.5"
   },

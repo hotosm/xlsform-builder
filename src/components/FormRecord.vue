@@ -167,7 +167,7 @@ async function previewForm() {
     }
 
     .tags-label {
-      font-family: $font-barlow-semibold;
+      font-weight: $font-weight-semibold;
       font-size: $font-size-small;
       color: $color-text-primary;
     }

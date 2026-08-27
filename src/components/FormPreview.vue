@@ -100,7 +100,7 @@ function isContainer(type: string): boolean {
     margin: 0 0 $spacing-md 0;
     color: $color-text-primary;
     font-size: $font-size-large;
-    font-family: $font-barlow-semibold;
+    font-weight: $font-weight-semibold;
   }
 }
 
@@ -126,7 +126,7 @@ function isContainer(type: string): boolean {
 
   .container-header {
     background: rgba(212, 42, 56, 0.05);
-    font-family: $font-barlow-semibold;
+    font-weight: $font-weight-semibold;
   }
 }
 
@@ -192,7 +192,7 @@ function isContainer(type: string): boolean {
 }
 
 .setting-label {
-  font-family: $font-barlow-semibold;
+  font-weight: $font-weight-semibold;
   color: $color-text-primary;
 }
 

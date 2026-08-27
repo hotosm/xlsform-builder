@@ -202,7 +202,7 @@ function handleViewExamples() {
     margin: 0 0 $spacing-sm 0;
     color: $color-text-primary;
     font-size: $font-size-large;
-    font-family: $font-barlow-semibold;
+    font-weight: $font-weight-semibold;
   }
 }
 
