@@ -101,6 +101,64 @@ export function insertNode(
   });
 }
 
+export function moveNode(
+  tree: SurveyNode[],
+  nodeId: string,
+  newParentId: string | null,
+  newIndex: number,
+): SurveyNode[] {
+  const node = findNode(tree, nodeId);
+  if (!node) {
+    return tree;
+  }
+
+  if (newParentId === nodeId) {
+    return tree;
+  }
+
+  if (newParentId !== null) {
+    if (findNode(node.children ?? [], newParentId)) {
+      return tree;
+    }
+    if (!findNode(tree, newParentId)) {
+      return tree;
+    }
+  }
+
+  const parentResult = findParent(tree, nodeId);
+  if (!parentResult) {
+    return tree;
+  }
+
+  const sourceParentId = parentResult.parent?.id ?? null;
+  const sourceIndex = parentResult.index;
+
+  let adjustedIndex = newIndex;
+  if (sourceParentId === newParentId && sourceIndex < newIndex) {
+    adjustedIndex = newIndex - 1;
+  }
+
+  const withoutNode = removeNode(tree, nodeId);
+  return insertNode(withoutNode, newParentId, adjustedIndex, node);
+}
+
+export function updateNode(
+  tree: SurveyNode[],
+  nodeId: string,
+  patch: Partial<Omit<SurveyNode, 'id' | 'children'>>,
+): SurveyNode[] {
+  return tree.map((n) => {
+    const clone = structuredClone(n);
+    if (clone.id === nodeId) {
+      return { ...clone, ...patch, id: clone.id, children: clone.children };
+    }
+    if (clone.children) {
+      clone.children = updateNode(clone.children, nodeId, patch);
+    }
+    return clone;
+  });
+}
+
 const INTERNAL_FIELDS = new Set(['id', 'children', 'extra']);
 
 export function expandLocalized(

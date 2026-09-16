@@ -2,7 +2,16 @@ import { describe, expect, it } from 'vitest';
 
 import type { SurveyNode } from '@/types/xlsform';
 
-import { COLUMN_MAP, findNode, findParent, flattenTree, insertNode, removeNode } from '@/utils/tree';
+import {
+  COLUMN_MAP,
+  findNode,
+  findParent,
+  flattenTree,
+  insertNode,
+  moveNode,
+  removeNode,
+  updateNode,
+} from '@/utils/tree';
 
 function makeNode(overrides: Partial<SurveyNode> & { id: string; name: string }): SurveyNode {
   return {
@@ -208,6 +217,112 @@ describe('insertNode', () => {
     const tree = makeSampleTree();
     const result = insertNode(tree, null, -5, newNode);
     expect(result[0].id).toBe('new1');
+  });
+});
+
+describe('moveNode', () => {
+  it('is a no-op when moving a node into itself', () => {
+    const tree = makeSampleTree();
+    const result = moveNode(tree, 'g1', 'g1', 0);
+    expect(result).toBe(tree);
+  });
+
+  it('is a no-op when moving a node into its own descendant', () => {
+    const tree = makeSampleTree();
+    const result = moveNode(tree, 'g1', 'q2', 0);
+    expect(result).toBe(tree);
+  });
+
+  it('reorders within the same parent to a later index', () => {
+    const tree = makeSampleTree();
+    const result = moveNode(tree, 'q2', 'g1', 2);
+    const group = findNode(result, 'g1');
+    expect(group!.children!.map((n) => n.id)).toEqual(['q3', 'q2']);
+  });
+
+  it('reorders within the same parent to an earlier index', () => {
+    const tree = makeSampleTree();
+    const result = moveNode(tree, 'q3', 'g1', 0);
+    const group = findNode(result, 'g1');
+    expect(group!.children!.map((n) => n.id)).toEqual(['q3', 'q2']);
+  });
+
+  it('moves a root-level node into a group', () => {
+    const tree = makeSampleTree();
+    const result = moveNode(tree, 'q1', 'g1', 0);
+    expect(result.map((n) => n.id)).toEqual(['g1', 'q4']);
+    const group = findNode(result, 'g1');
+    expect(group!.children!.map((n) => n.id)).toEqual(['q1', 'q2', 'q3']);
+  });
+
+  it('moves a node out of a group to root level', () => {
+    const tree = makeSampleTree();
+    const result = moveNode(tree, 'q2', null, 0);
+    expect(result.map((n) => n.id)).toEqual(['q2', 'q1', 'g1', 'q4']);
+    const group = findNode(result, 'g1');
+    expect(group!.children!.map((n) => n.id)).toEqual(['q3']);
+  });
+
+  it('is a no-op when the new parent does not exist', () => {
+    const tree = makeSampleTree();
+    const result = moveNode(tree, 'q1', 'missing', 0);
+    expect(result).toBe(tree);
+  });
+
+  it('is a no-op when the node to move does not exist', () => {
+    const tree = makeSampleTree();
+    const result = moveNode(tree, 'missing', 'g1', 0);
+    expect(result).toBe(tree);
+  });
+
+  it('does not mutate the original tree', () => {
+    const tree = makeSampleTree();
+    moveNode(tree, 'q2', null, 0);
+    expect(tree.map((n) => n.id)).toEqual(['q1', 'g1', 'q4']);
+    const group = findNode(tree, 'g1');
+    expect(group!.children!.map((n) => n.id)).toEqual(['q2', 'q3']);
+  });
+});
+
+describe('updateNode', () => {
+  it('shallow-merges a patch onto a root-level node', () => {
+    const tree = makeSampleTree();
+    const result = updateNode(tree, 'q1', { label: 'Updated label', required: 'yes' });
+    const node = findNode(result, 'q1');
+    expect(node!.label).toBe('Updated label');
+    expect(node!.required).toBe('yes');
+    expect(node!.name).toBe('name');
+  });
+
+  it('shallow-merges a patch onto a nested node', () => {
+    const tree = makeSampleTree();
+    const result = updateNode(tree, 'q2', { label: 'New age label' });
+    const node = findNode(result, 'q2');
+    expect(node!.label).toBe('New age label');
+  });
+
+  it('does not let a patch overwrite id or children', () => {
+    const tree = makeSampleTree();
+    const patch = { id: 'hacked', children: [] } as unknown as Partial<
+      Omit<SurveyNode, 'id' | 'children'>
+    >;
+    const result = updateNode(tree, 'g1', patch);
+    const node = findNode(result, 'g1');
+    expect(node!.id).toBe('g1');
+    expect(node!.children!.map((n) => n.id)).toEqual(['q2', 'q3']);
+  });
+
+  it('does not mutate the original tree', () => {
+    const tree = makeSampleTree();
+    updateNode(tree, 'q1', { label: 'Changed' });
+    expect(findNode(tree, 'q1')!.label).toBe('What is your name?');
+  });
+
+  it('returns a copy when id does not exist', () => {
+    const tree = makeSampleTree();
+    const result = updateNode(tree, 'missing', { label: 'x' });
+    expect(result).not.toBe(tree);
+    expect(result).toHaveLength(3);
   });
 });
 
