@@ -1,4 +1,4 @@
-import { ref, toRaw } from 'vue';
+import { computed, ref, shallowRef, toRaw } from 'vue';
 
 import { defineStore } from 'pinia';
 
@@ -77,10 +77,13 @@ export const useFormStore = defineStore('form', () => {
   const document = ref<XLSFormDocument>(emptyDocument());
   const selectedNodeId = ref<string | null>(null);
 
-  let past: XLSFormDocument[] = [];
-  let future: XLSFormDocument[] = [];
+  const past = shallowRef<XLSFormDocument[]>([]);
+  const future = shallowRef<XLSFormDocument[]>([]);
   let batchDepth = 0;
   let batchSnapshot: XLSFormDocument | null = null;
+
+  const canUndo = computed(() => past.value.length > 0);
+  const canRedo = computed(() => future.value.length > 0);
 
   function snapshot(doc: XLSFormDocument): XLSFormDocument {
     return structuredClone(toRaw(doc));
@@ -88,9 +91,8 @@ export const useFormStore = defineStore('form', () => {
 
   function pushHistory(): void {
     if (batchDepth > 0) return;
-    past.push(snapshot(document.value));
-    if (past.length > HISTORY_LIMIT) past.shift();
-    future = [];
+    past.value = [...past.value, snapshot(document.value)].slice(-HISTORY_LIMIT);
+    future.value = [];
   }
 
   function beginHistoryBatch(): void {
@@ -104,24 +106,28 @@ export const useFormStore = defineStore('form', () => {
     if (batchDepth === 0) return;
     batchDepth--;
     if (batchDepth === 0 && batchSnapshot) {
-      past.push(batchSnapshot);
-      if (past.length > HISTORY_LIMIT) past.shift();
-      future = [];
+      const changed = JSON.stringify(batchSnapshot) !== JSON.stringify(toRaw(document.value));
+      if (changed) {
+        past.value = [...past.value, batchSnapshot].slice(-HISTORY_LIMIT);
+        future.value = [];
+      }
       batchSnapshot = null;
     }
   }
 
   function undo(): void {
-    const prev = past.pop();
+    const prev = past.value[past.value.length - 1];
     if (!prev) return;
-    future.push(snapshot(document.value));
+    past.value = past.value.slice(0, -1);
+    future.value = [...future.value, snapshot(document.value)];
     document.value = prev;
   }
 
   function redo(): void {
-    const next = future.pop();
+    const next = future.value[future.value.length - 1];
     if (!next) return;
-    past.push(snapshot(document.value));
+    future.value = future.value.slice(0, -1);
+    past.value = [...past.value, snapshot(document.value)];
     document.value = next;
   }
 
@@ -204,10 +210,37 @@ export const useFormStore = defineStore('form', () => {
     document.value.survey = updateNodeInTree(toRaw(document.value).survey, nodeId, patch);
   }
 
-  function replaceChildren(parentId: string | null, children: SurveyNode[]): void {
-    if (parentId !== null && !findNode(document.value.survey, parentId)) return;
+  function isIdInSubtree(node: SurveyNode, id: string): boolean {
+    if (node.id === id) return true;
+    return node.children ? node.children.some((child) => isIdInSubtree(child, id)) : false;
+  }
+
+  function replaceChildren(parentId: string | null, children: SurveyNode[]): SurveyNode[] {
+    const current = toRaw(document.value).survey;
+    if (parentId !== null && !findNode(current, parentId)) return current;
+
+    const resolved = children.map(
+      (child) => findNode(current, child.id) ?? structuredClone(toRaw(child)),
+    );
+
+    if (parentId !== null && resolved.some((node) => isIdInSubtree(node, parentId))) {
+      return current;
+    }
+
+    let stripped = current;
+    for (const node of resolved) {
+      stripped = removeNodeInTree(stripped, node.id);
+    }
+
+    const result = setChildrenAt(stripped, parentId, resolved);
+
+    if (JSON.stringify(result) === JSON.stringify(current)) {
+      return current;
+    }
+
     pushHistory();
-    document.value.survey = setChildrenAt(toRaw(document.value).survey, parentId, toRaw(children));
+    document.value.survey = result;
+    return result;
   }
 
   function addChoiceList(listName: string): void {
@@ -254,8 +287,8 @@ export const useFormStore = defineStore('form', () => {
   function loadDocument(doc: XLSFormDocument): void {
     document.value = snapshot(doc);
     selectedNodeId.value = null;
-    past = [];
-    future = [];
+    past.value = [];
+    future.value = [];
     batchDepth = 0;
     batchSnapshot = null;
   }
@@ -280,6 +313,8 @@ export const useFormStore = defineStore('form', () => {
     loadDocument,
     undo,
     redo,
+    canUndo,
+    canRedo,
     beginHistoryBatch,
     endHistoryBatch,
   };

@@ -273,3 +273,102 @@ describe('undo/redo', () => {
     expect(store.document.survey.find((n) => n.id === 'q1')!.label).toBe('What is your name?');
   });
 });
+
+describe('canUndo/canRedo', () => {
+  it('is false on a fresh store', () => {
+    const store = useFormStore();
+
+    expect(store.canUndo).toBe(false);
+    expect(store.canRedo).toBe(false);
+  });
+
+  it('flips true after a mutation, and flips correctly across undo/redo', () => {
+    const store = useFormStore();
+    store.loadDocument(makeSampleDocument());
+
+    store.updateNode('q1', { label: 'Changed' });
+    expect(store.canUndo).toBe(true);
+    expect(store.canRedo).toBe(false);
+
+    store.undo();
+    expect(store.canUndo).toBe(false);
+    expect(store.canRedo).toBe(true);
+
+    store.redo();
+    expect(store.canUndo).toBe(true);
+    expect(store.canRedo).toBe(false);
+  });
+});
+
+describe('replaceChildren', () => {
+  function countOccurrences(nodes: XLSFormDocument['survey'], id: string): number {
+    return nodes.reduce((count, node) => {
+      const here = node.id === id ? 1 : 0;
+      const inChildren = node.children ? countOccurrences(node.children, id) : 0;
+      return count + here + inChildren;
+    }, 0);
+  }
+
+  it('reconciles cross-container drag by id despite a stale source-list order', () => {
+    const store = useFormStore();
+    store.loadDocument(makeSampleDocument());
+
+    const q1 = store.document.survey.find((n) => n.id === 'q1')!;
+    const g1 = store.document.survey.find((n) => n.id === 'g1')!;
+    const q4 = store.document.survey.find((n) => n.id === 'q4')!;
+
+    store.replaceChildren('g1', [...g1.children!, q1]);
+
+    store.replaceChildren(null, [g1, q4]);
+
+    const survey = store.document.survey;
+    const finalG1 = survey.find((n) => n.id === 'g1')!;
+
+    expect(finalG1.children!.map((n) => n.id)).toContain('q1');
+    expect(countOccurrences(survey, 'q1')).toBe(1);
+    expect(survey.some((n) => n.id === 'q1')).toBe(false);
+  });
+
+  it('adds no history entry when the array is unchanged', () => {
+    const store = useFormStore();
+    store.loadDocument(makeSampleDocument());
+
+    store.replaceChildren(null, store.document.survey);
+
+    expect(store.canUndo).toBe(false);
+  });
+
+  it('collapses a batched cross-container drag into a single undo restoring the original tree', () => {
+    const store = useFormStore();
+    store.loadDocument(makeSampleDocument());
+    const original = JSON.stringify(store.document.survey);
+
+    const q1 = store.document.survey.find((n) => n.id === 'q1')!;
+    const g1 = store.document.survey.find((n) => n.id === 'g1')!;
+    const q4 = store.document.survey.find((n) => n.id === 'q4')!;
+
+    store.beginHistoryBatch();
+    store.replaceChildren('g1', [...g1.children!, q1]);
+    store.replaceChildren(null, [g1, q4]);
+    store.endHistoryBatch();
+
+    expect(store.document.survey.find((n) => n.id === 'g1')!.children!.map((n) => n.id)).toContain(
+      'q1',
+    );
+
+    store.undo();
+
+    expect(JSON.stringify(store.document.survey)).toBe(original);
+    expect(store.canUndo).toBe(false);
+  });
+
+  it('leaves canUndo false when begin/end wraps no mutation', () => {
+    const store = useFormStore();
+    store.loadDocument(makeSampleDocument());
+
+    store.beginHistoryBatch();
+    store.endHistoryBatch();
+
+    expect(store.canUndo).toBe(false);
+  });
+});
