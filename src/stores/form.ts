@@ -132,7 +132,7 @@ export const useFormStore = defineStore('form', () => {
   function addNode(type: XLSFormType, parentId: string | null, index: number): SurveyNode {
     beginHistoryBatch();
     const node = createNode(type);
-    document.value.survey = insertNode(document.value.survey, parentId, index, node);
+    document.value.survey = insertNode(toRaw(document.value).survey, parentId, index, node);
     selectedNodeId.value = node.id;
     if (node.listName) {
       addChoiceList(node.listName);
@@ -142,8 +142,9 @@ export const useFormStore = defineStore('form', () => {
   }
 
   function applyMove(nodeId: string, newParentId: string | null, newIndex: number): void {
-    const result = moveNodeInTree(document.value.survey, nodeId, newParentId, newIndex);
-    if (result === document.value.survey) return;
+    const survey = toRaw(document.value).survey;
+    const result = moveNodeInTree(survey, nodeId, newParentId, newIndex);
+    if (result === survey) return;
     pushHistory();
     document.value.survey = result;
   }
@@ -194,30 +195,32 @@ export const useFormStore = defineStore('form', () => {
     ) {
       selectedNodeId.value = null;
     }
-    document.value.survey = removeNodeInTree(document.value.survey, nodeId);
+    document.value.survey = removeNodeInTree(toRaw(document.value).survey, nodeId);
   }
 
   function updateNode(nodeId: string, patch: Partial<Omit<SurveyNode, 'id' | 'children'>>): void {
     if (!findNode(document.value.survey, nodeId)) return;
     pushHistory();
-    document.value.survey = updateNodeInTree(document.value.survey, nodeId, patch);
+    document.value.survey = updateNodeInTree(toRaw(document.value).survey, nodeId, patch);
   }
 
   function replaceChildren(parentId: string | null, children: SurveyNode[]): void {
     if (parentId !== null && !findNode(document.value.survey, parentId)) return;
     pushHistory();
-    document.value.survey = setChildrenAt(document.value.survey, parentId, children);
+    document.value.survey = setChildrenAt(toRaw(document.value).survey, parentId, toRaw(children));
   }
 
   function addChoiceList(listName: string): void {
-    if (document.value.choices.some((list) => list.listName === listName)) return;
+    const choices = toRaw(document.value).choices;
+    if (choices.some((list) => list.listName === listName)) return;
     pushHistory();
-    document.value.choices = [...document.value.choices, { listName, choices: [] }];
+    document.value.choices = [...choices, { listName, choices: [] }];
   }
 
   function addChoice(listName: string, choice?: Partial<Choice>): void {
     pushHistory();
-    const existing = document.value.choices.find((list) => list.listName === listName);
+    const choices = toRaw(document.value).choices;
+    const existing = choices.find((list) => list.listName === listName);
     const ordinal = (existing?.choices.length ?? 0) + 1;
     const newChoice: Choice = {
       name: choice?.name ?? `choice_${ordinal}`,
@@ -225,17 +228,18 @@ export const useFormStore = defineStore('form', () => {
       ...(choice?.extra ? { extra: choice.extra } : {}),
     };
     document.value.choices = existing
-      ? document.value.choices.map((list) =>
+      ? choices.map((list) =>
           list.listName === listName ? { ...list, choices: [...list.choices, newChoice] } : list,
         )
-      : [...document.value.choices, { listName, choices: [newChoice] }];
+      : [...choices, { listName, choices: [newChoice] }];
   }
 
   function removeChoice(listName: string, choiceName: string): void {
-    const list = document.value.choices.find((l) => l.listName === listName);
+    const choices = toRaw(document.value).choices;
+    const list = choices.find((l) => l.listName === listName);
     if (!list || !list.choices.some((c) => c.name === choiceName)) return;
     pushHistory();
-    document.value.choices = document.value.choices.map((l) =>
+    document.value.choices = choices.map((l) =>
       l.listName === listName
         ? { ...l, choices: l.choices.filter((c) => c.name !== choiceName) }
         : l,
@@ -244,7 +248,7 @@ export const useFormStore = defineStore('form', () => {
 
   function updateSettings(patch: Partial<FormSettings>): void {
     pushHistory();
-    document.value.settings = { ...document.value.settings, ...patch };
+    document.value.settings = { ...toRaw(document.value).settings, ...patch };
   }
 
   function loadDocument(doc: XLSFormDocument): void {
