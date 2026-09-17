@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-import FormPreview from '@/components/FormPreview.vue';
+import BuilderCanvas from '@/components/builder/BuilderCanvas.vue';
 import { generateForm } from '@/services/llmService';
-import { exportToXlsx } from '@/utils/export';
-import type { XLSFormDocument } from '@/types/xlsform';
+import { useFormStore } from '@/stores/form';
+
+const store = useFormStore();
 
 const prompt = ref('');
 const isGenerating = ref(false);
 const errorMessage = ref('');
-const generatedDoc = ref<XLSFormDocument | null>(null);
 
 async function handleGenerate() {
   if (!prompt.value.trim()) return;
@@ -18,27 +18,12 @@ async function handleGenerate() {
   errorMessage.value = '';
 
   try {
-    generatedDoc.value = await generateForm(prompt.value.trim());
+    store.loadDocument(await generateForm(prompt.value.trim()));
   } catch (err) {
     errorMessage.value = err instanceof Error ? err.message : 'Generation failed';
   } finally {
     isGenerating.value = false;
   }
-}
-
-function handleDownload() {
-  if (!generatedDoc.value) return;
-
-  const data = exportToXlsx(generatedDoc.value);
-  const blob = new Blob([data], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${generatedDoc.value.settings.formId || 'form'}.xlsx`;
-  link.click();
-  URL.revokeObjectURL(url);
 }
 </script>
 
@@ -80,21 +65,15 @@ function handleDownload() {
       <wa-button variant="neutral" size="s" @click="errorMessage = ''">Dismiss</wa-button>
     </div>
 
-    <div v-if="generatedDoc && !isGenerating" class="result-card">
-      <div class="result-header">
-        <h3>{{ generatedDoc.settings.formTitle }}</h3>
-        <wa-button variant="danger" size="s" @click="handleDownload">
-          Download .xlsx
-        </wa-button>
-      </div>
-      <FormPreview :document="generatedDoc" />
+    <div class="canvas-wrapper">
+      <BuilderCanvas />
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .builder-page {
-  max-width: 50rem;
+  max-width: 90rem;
   margin: 0 auto;
   padding: $spacing-lg;
 }
@@ -164,21 +143,10 @@ function handleDownload() {
   }
 }
 
-.result-card {
-  background: $color-bg-surface;
+.canvas-wrapper {
+  min-height: 32rem;
   border-radius: $border-radius;
-  padding: $spacing-lg;
-}
-
-.result-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: $spacing-lg;
-
-  h3 {
-    margin: 0;
-    color: $color-text-primary;
-  }
+  border: 1px solid $color-border;
+  overflow: hidden;
 }
 </style>
