@@ -25,13 +25,6 @@ const canMoveUp = computed(() => !!boundary.value && boundary.value.index > 0);
 const canMoveDown = computed(
   () => !!boundary.value && boundary.value.index < boundary.value.children.length - 1,
 );
-const canMoveIn = computed(() => {
-  const b = boundary.value;
-  if (!b || b.index === 0) return false;
-  const previousSibling = b.children[b.index - 1];
-  return previousSibling.type === 'group' || previousSibling.type === 'repeat';
-});
-const canMoveOut = computed(() => !!boundary.value && boundary.value.parent !== null);
 
 type MoveDirection = 'up' | 'down' | 'in' | 'out';
 
@@ -208,24 +201,6 @@ function onKeydown(event: KeyboardEvent): void {
           @click.stop="announceMove('down')"
         >
           <wa-icon name="arrow-down" label="Move down"></wa-icon>
-        </wa-button>
-        <wa-button
-          v-if="canMoveIn"
-          appearance="outlined"
-          size="s"
-          title="Nest into previous group (Alt+→)"
-          @click.stop="announceMove('in')"
-        >
-          <wa-icon name="indent" label="Nest into previous group"></wa-icon>
-        </wa-button>
-        <wa-button
-          v-if="canMoveOut"
-          appearance="outlined"
-          size="s"
-          title="Move out of group (Alt+←)"
-          @click.stop="announceMove('out')"
-        >
-          <wa-icon name="outdent" label="Move out of group"></wa-icon>
         </wa-button>
         <wa-button
           class="node-delete-button"
