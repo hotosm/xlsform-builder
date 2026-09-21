@@ -43,8 +43,10 @@ async function handleExport(): Promise<void> {
     const link = document.createElement('a');
     link.href = url;
     link.download = `${store.document.settings.formId || 'form'}.xlsx`;
+    document.body.append(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (err) {
     exportError.value = friendlyErrorMessage(err);
   } finally {
