@@ -2,7 +2,7 @@ import { computed, ref, shallowRef, toRaw, watch } from 'vue';
 
 import { defineStore } from 'pinia';
 
-import { PALETTE_LABELS } from '@/components/builder/paletteItems';
+import { PALETTE_LABELS } from '@/constants/paletteItems';
 import type {
   Choice,
   FormSettings,

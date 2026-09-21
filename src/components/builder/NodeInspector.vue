@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
+import { PALETTE_LABELS } from '@/constants/paletteItems';
 import { useFormStore } from '@/stores/form';
 import { localizedText } from '@/utils/localized';
 import { collectNames, countListUsages, findNode } from '@/utils/tree';
-
-import { PALETTE_LABELS } from './paletteItems';
 
 withDefaults(defineProps<{ closable?: boolean }>(), { closable: false });
 const emit = defineEmits<{ close: []; escape: [] }>();
