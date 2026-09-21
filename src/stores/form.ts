@@ -361,6 +361,21 @@ export const useFormStore = defineStore('form', () => {
       : [...choices, { listName, choices: [newChoice] }];
   }
 
+  function updateChoice(listName: string, choiceName: string, patch: Partial<Choice>): void {
+    const choices = toRaw(document.value).choices;
+    const list = choices.find((l) => l.listName === listName);
+    if (!list || !list.choices.some((c) => c.name === choiceName)) return;
+    pushHistory();
+    document.value.choices = choices.map((l) =>
+      l.listName === listName
+        ? {
+            ...l,
+            choices: l.choices.map((c) => (c.name === choiceName ? { ...c, ...patch } : c)),
+          }
+        : l,
+    );
+  }
+
   function removeChoice(listName: string, choiceName: string): void {
     const choices = toRaw(document.value).choices;
     const list = choices.find((l) => l.listName === listName);
@@ -376,6 +391,14 @@ export const useFormStore = defineStore('form', () => {
   function updateSettings(patch: Partial<FormSettings>): void {
     pushHistory();
     document.value.settings = { ...toRaw(document.value).settings, ...patch };
+  }
+
+  function clearSurvey(): void {
+    const current = toRaw(document.value);
+    if (current.survey.length === 0 && current.choices.length === 0) return;
+    pushHistory();
+    document.value = { ...current, survey: [], choices: [] };
+    selectedNodeId.value = null;
   }
 
   function loadDocument(doc: XLSFormDocument): void {
@@ -403,9 +426,11 @@ export const useFormStore = defineStore('form', () => {
     replaceChildren,
     addChoiceList,
     addChoice,
+    updateChoice,
     removeChoice,
     updateSettings,
     loadDocument,
+    clearSurvey,
     undo,
     redo,
     canUndo,

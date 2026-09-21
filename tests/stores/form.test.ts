@@ -128,6 +128,43 @@ describe('removeNode', () => {
   });
 });
 
+describe('clearSurvey', () => {
+  it('removes all questions and choice lists but keeps settings', () => {
+    const store = useFormStore();
+    const doc = makeSampleDocument();
+    store.loadDocument(doc);
+    store.selectNode('q1');
+
+    store.clearSurvey();
+
+    expect(store.document.survey).toEqual([]);
+    expect(store.document.choices).toEqual([]);
+    expect(store.document.settings).toEqual(doc.settings);
+    expect(store.selectedNodeId).toBeNull();
+  });
+
+  it('can be undone', () => {
+    const store = useFormStore();
+    const doc = makeSampleDocument();
+    store.loadDocument(doc);
+
+    store.clearSurvey();
+    store.undo();
+
+    expect(store.document.survey).toEqual(doc.survey);
+    expect(store.document.choices).toEqual(doc.choices);
+  });
+
+  it('is a no-op on an already empty form', () => {
+    const store = useFormStore();
+    store.loadDocument({ ...makeSampleDocument(), survey: [], choices: [] });
+
+    store.clearSurvey();
+
+    expect(store.canUndo).toBe(false);
+  });
+});
+
 describe('addNode', () => {
   it('auto-creates a matching choice list for a select_one node', () => {
     const store = useFormStore();

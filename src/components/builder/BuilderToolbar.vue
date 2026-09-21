@@ -1,34 +1,119 @@
 <script setup lang="ts">
-import { exportToXlsx } from '@/utils/export';
+import { computed, ref } from 'vue';
+
 import { useFormStore } from '@/stores/form';
+import { exportToXlsx } from '@/utils/export';
+import { friendlyErrorMessage } from '@/utils/errors';
+import { collectNames } from '@/utils/tree';
 
 const store = useFormStore();
 
-function handleExport(): void {
-  const data = exportToXlsx(store.document);
-  const blob = new Blob([data as BlobPart], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+const isExporting = ref(false);
+const exportError = ref('');
+const confirmClearOpen = ref(false);
+
+const questionCount = computed(() => collectNames(store.document.survey).length);
+
+function confirmClear(): void {
+  confirmClearOpen.value = false;
+  store.clearSurvey();
+}
+
+const savedAtLabel = computed(() => {
+  if (store.lastSavedAt === null) return '';
+  const time = new Date(store.lastSavedAt).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
   });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${store.document.settings.formId || 'form'}.xlsx`;
-  link.click();
-  URL.revokeObjectURL(url);
+  return `Draft saved ${time}`;
+});
+
+function handleExport(): void {
+  isExporting.value = true;
+  exportError.value = '';
+  try {
+    const data = exportToXlsx(store.document);
+    const blob = new Blob([data as BlobPart], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${store.document.settings.formId || 'form'}.xlsx`;
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    exportError.value = friendlyErrorMessage(err);
+  } finally {
+    isExporting.value = false;
+  }
 }
 </script>
 
 <template>
   <div class="builder-toolbar">
-    <wa-button variant="neutral" size="s" :disabled="!store.canUndo" @click="store.undo()">
+    <wa-button
+      variant="neutral"
+      size="s"
+      :disabled="!store.canUndo"
+      title="Undo (Ctrl/Cmd+Z)"
+      @click="store.undo()"
+    >
       Undo
     </wa-button>
-    <wa-button variant="neutral" size="s" :disabled="!store.canRedo" @click="store.redo()">
+    <wa-button
+      variant="neutral"
+      size="s"
+      :disabled="!store.canRedo"
+      title="Redo (Ctrl/Cmd+Shift+Z)"
+      @click="store.redo()"
+    >
       Redo
     </wa-button>
-    <wa-button variant="danger" size="s" class="export-button" @click="handleExport">
+    <wa-button
+      appearance="outlined"
+      variant="danger"
+      size="s"
+      :disabled="questionCount === 0"
+      @click="confirmClearOpen = true"
+    >
+      <wa-icon slot="start" name="trash" aria-hidden="true"></wa-icon>
+      Clear form
+    </wa-button>
+    <span v-if="savedAtLabel" class="draft-saved" role="status">{{ savedAtLabel }}</span>
+    <wa-button
+      variant="brand"
+      size="s"
+      class="export-button"
+      :loading="isExporting"
+      @click="handleExport"
+    >
       Export
     </wa-button>
+    <wa-callout v-if="exportError" class="export-error" variant="danger" size="s" role="alert">
+      <wa-icon slot="icon" name="circle-exclamation" aria-hidden="true"></wa-icon>
+      <div class="export-error-body">
+        <span>{{ exportError }}</span>
+        <wa-button appearance="plain" size="s" title="Dismiss error" @click="exportError = ''">
+          <wa-icon name="xmark" label="Dismiss error"></wa-icon>
+        </wa-button>
+      </div>
+    </wa-callout>
+
+    <wa-dialog
+      :open="confirmClearOpen"
+      label="Clear the whole form?"
+      @wa-after-hide="confirmClearOpen = false"
+    >
+      <p>
+        This removes all {{ questionCount }} question{{ questionCount === 1 ? '' : 's' }} and their
+        choice lists. You can undo it with Ctrl/Cmd+Z.
+      </p>
+      <div slot="footer" class="dialog-footer">
+        <wa-button variant="neutral" @click="confirmClearOpen = false">Cancel</wa-button>
+        <wa-button variant="danger" @click="confirmClear">Clear form</wa-button>
+      </div>
+    </wa-dialog>
   </div>
 </template>
 
@@ -36,6 +121,7 @@ function handleExport(): void {
 .builder-toolbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: $spacing-sm;
   padding: $spacing-sm $spacing-md;
   border-bottom: 1px solid $color-border;
@@ -44,5 +130,29 @@ function handleExport(): void {
 
 .export-button {
   margin-left: auto;
+}
+
+.draft-saved {
+  color: $color-text-secondary;
+  font-size: $font-size-small;
+}
+
+.dialog-footer {
+  display: flex;
+  gap: $spacing-md;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.export-error {
+  flex-basis: 100%;
+}
+
+.export-error-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  font-size: $font-size-small;
 }
 </style>
