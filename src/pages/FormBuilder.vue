@@ -110,6 +110,17 @@ onUnmounted(() => {
   @include bp(md) {
     padding: $spacing-lg;
   }
+
+  @include bp(lg) {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - #{$app-header-height} - 2 * #{$spacing-lg});
+    min-height: 40rem;
+
+    > * {
+      flex-shrink: 0;
+    }
+  }
 }
 
 .builder-header {
@@ -117,7 +128,7 @@ onUnmounted(() => {
 
   h2 {
     margin-bottom: $spacing-xs;
-    color: $color-text-primary;
+    color: $color-text-heading;
   }
 
   .subtitle {
@@ -161,8 +172,9 @@ onUnmounted(() => {
   overflow: hidden;
 
   @include bp(lg) {
-    height: 70vh;
-    min-height: 32rem;
+    flex: 1;
+    height: auto;
+    min-height: 28rem;
   }
 }
 </style>
