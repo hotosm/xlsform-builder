@@ -69,6 +69,8 @@ function onDragEnd(): void {
       group="survey-tree"
       :animation="150"
       handle=".node-drag-handle"
+      :delay="200"
+      :delay-on-touch-only="true"
       ghost-class="drop-indicator"
       @start="onDragStart"
       @end="onDragEnd"

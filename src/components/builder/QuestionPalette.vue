@@ -152,6 +152,8 @@ function addItem(item: PaletteItem): void {
           :group="{ name: 'survey-tree', pull: 'clone', put: false }"
           :clone="cloneItem"
           :sort="false"
+          :delay="200"
+          :delay-on-touch-only="true"
           @start="onDragStart"
           @end="onDragEnd"
         >
