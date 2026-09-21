@@ -196,7 +196,11 @@ function addItem(item: PaletteItem): void {
 
   @include bp(lg) {
     flex-shrink: 0;
-    width: 272px;
+    width: 15rem;
+  }
+
+  @include bp(xl) {
+    width: 17rem;
   }
 }
 

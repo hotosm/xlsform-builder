@@ -201,11 +201,15 @@ onUnmounted(() => {
 
 .inspector-sidebar {
   flex-shrink: 0;
-  width: 320px;
+  width: 17.5rem;
   border-left: 1px solid $color-border;
 
   @include bp(xl) {
-    width: 400px;
+    width: 20rem;
+  }
+
+  @include bp(xxl) {
+    width: 25rem;
   }
 }
 

@@ -7,13 +7,13 @@ import { friendlyErrorMessage } from '@/utils/errors';
 import { exportToXlsx } from '@/utils/export';
 import { collectNames } from '@/utils/tree';
 
-import { TOOLBAR_LABELS_QUERY, useMediaQuery } from './useMediaQuery';
+import { WIDE_LAYOUT_QUERY, useMediaQuery } from './useMediaQuery';
 
 defineProps<{ showAddQuestion?: boolean }>();
 const emit = defineEmits<{ addQuestion: [] }>();
 
 const store = useFormStore();
-const showLabels = useMediaQuery(TOOLBAR_LABELS_QUERY);
+const showLabels = useMediaQuery(WIDE_LAYOUT_QUERY);
 const iconOnly = computed(() => !showLabels.value);
 
 const isExporting = ref(false);
