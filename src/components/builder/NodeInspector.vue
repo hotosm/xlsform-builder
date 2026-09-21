@@ -131,6 +131,12 @@ function unknownRefsMessage(expression: string): string {
   return `No question named ${list}.`;
 }
 
+const calculationWarning = computed(() => unknownRefsMessage(calculation.value));
+const relevantWarning = computed(() => unknownRefsMessage(relevant.value));
+const repeatCountWarning = computed(() => unknownRefsMessage(repeatCount.value));
+const constraintWarning = computed(() => unknownRefsMessage(constraint.value));
+const choiceFilterWarning = computed(() => unknownRefsMessage(choiceFilter.value));
+
 const HINTS = {
   calculation: 'Expression whose result is stored, e.g. ${price} * ${quantity}',
   relevant: "Leave empty to always show. XLSForm “relevant”, e.g. ${has_damage} = 'yes'",
@@ -395,8 +401,8 @@ function removeChoice(draft: ChoiceDraft): void {
             rows="1"
             @change="commitCalculation"
           >
-            <span slot="hint" :class="{ 'field-warning': unknownRefsMessage(calculation) }">
-              {{ unknownRefsMessage(calculation) || HINTS.calculation }}
+            <span slot="hint" :class="{ 'field-warning': calculationWarning }">
+              {{ calculationWarning || HINTS.calculation }}
             </span>
           </wa-textarea>
           <wa-input
@@ -513,8 +519,8 @@ function removeChoice(draft: ChoiceDraft): void {
             rows="1"
             @change="commitRelevant"
           >
-            <span slot="hint" :class="{ 'field-warning': unknownRefsMessage(relevant) }">
-              {{ unknownRefsMessage(relevant) || HINTS.relevant }}
+            <span slot="hint" :class="{ 'field-warning': relevantWarning }">
+              {{ relevantWarning || HINTS.relevant }}
             </span>
           </wa-textarea>
           <wa-textarea
@@ -525,8 +531,8 @@ function removeChoice(draft: ChoiceDraft): void {
             rows="1"
             @change="commitRepeatCount"
           >
-            <span slot="hint" :class="{ 'field-warning': unknownRefsMessage(repeatCount) }">
-              {{ unknownRefsMessage(repeatCount) || HINTS.repeatCount }}
+            <span slot="hint" :class="{ 'field-warning': repeatCountWarning }">
+              {{ repeatCountWarning || HINTS.repeatCount }}
             </span>
           </wa-textarea>
         </div>
@@ -552,8 +558,8 @@ function removeChoice(draft: ChoiceDraft): void {
             rows="1"
             @change="commitConstraint"
           >
-            <span slot="hint" :class="{ 'field-warning': unknownRefsMessage(constraint) }">
-              {{ unknownRefsMessage(constraint) || HINTS.constraint }}
+            <span slot="hint" :class="{ 'field-warning': constraintWarning }">
+              {{ constraintWarning || HINTS.constraint }}
             </span>
           </wa-textarea>
           <wa-input
@@ -608,8 +614,8 @@ function removeChoice(draft: ChoiceDraft): void {
             rows="1"
             @change="commitChoiceFilter"
           >
-            <span slot="hint" :class="{ 'field-warning': unknownRefsMessage(choiceFilter) }">
-              {{ unknownRefsMessage(choiceFilter) || HINTS.choiceFilter }}
+            <span slot="hint" :class="{ 'field-warning': choiceFilterWarning }">
+              {{ choiceFilterWarning || HINTS.choiceFilter }}
             </span>
           </wa-textarea>
           <wa-checkbox
