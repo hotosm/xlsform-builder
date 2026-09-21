@@ -118,7 +118,7 @@ function addItem(item: PaletteItem): void {
   <aside class="question-palette">
     <div class="palette-header">
       <div class="palette-header-text">
-        <h3 class="palette-heading">Add Question</h3>
+        <h3 class="palette-heading">Add question</h3>
         <p class="palette-insert-hint">{{ insertHint }}</p>
       </div>
       <wa-button v-if="closable" appearance="plain" @click="emit('close')">
@@ -217,10 +217,9 @@ function addItem(item: PaletteItem): void {
 .palette-heading {
   margin: 0;
   color: $color-text-heading;
-  font-size: $font-size-small;
+  font-size: $font-size-large;
   font-weight: $font-weight-semibold;
-  text-transform: uppercase;
-  letter-spacing: $letter-spacing-loose;
+  line-height: $line-height-dense;
 }
 
 .palette-insert-hint {
