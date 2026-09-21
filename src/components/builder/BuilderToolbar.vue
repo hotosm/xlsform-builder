@@ -20,8 +20,9 @@ const savedAtLabel = computed(() => {
   const time = new Date(store.lastSavedAt).toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
+    hourCycle: 'h23',
   });
-  return `Draft saved ${time}`;
+  return `Saved ${time}`;
 });
 
 async function waitForPaint(): Promise<void> {
