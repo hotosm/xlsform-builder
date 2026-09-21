@@ -723,7 +723,7 @@ function removeChoice(draft: ChoiceDraft): void {
 
 .inspector-empty-icon {
   font-size: 1.5rem;
-  opacity: 0.3;
+  color: $color-neutral-400;
 }
 
 .inspector-sections {

@@ -64,6 +64,7 @@ onUnmounted(() => {
       <wa-input
         v-model="prompt"
         placeholder="e.g., I want to survey building damage after an earthquake"
+        :hint="isGenerating ? 'Generating your form. This may take a few moments.' : ''"
         :disabled="isGenerating"
       ></wa-input>
       <wa-button
@@ -76,19 +77,13 @@ onUnmounted(() => {
       </wa-button>
     </form>
 
-    <div v-if="isGenerating" class="loading-state">
-      <wa-spinner></wa-spinner>
-      <div class="loading-text">
-        <p>Generating your form...</p>
-        <p class="loading-hint">This may take a few moments depending on the form complexity.</p>
-      </div>
-    </div>
-
     <wa-callout v-if="errorMessage" class="error-message" variant="danger" role="alert">
       <wa-icon slot="icon" name="circle-exclamation" aria-hidden="true"></wa-icon>
       <div class="error-message-body">
         <span>{{ errorMessage }}</span>
-        <wa-button variant="neutral" size="s" @click="errorMessage = ''">Dismiss</wa-button>
+        <wa-button appearance="plain" size="s" title="Dismiss error" @click="errorMessage = ''">
+          <wa-icon name="xmark" label="Dismiss error"></wa-icon>
+        </wa-button>
       </div>
     </wa-callout>
 
@@ -144,30 +139,6 @@ onUnmounted(() => {
 
   wa-input {
     flex: 1;
-  }
-}
-
-.loading-state {
-  display: flex;
-  align-items: center;
-  gap: $spacing-md;
-  padding: $spacing-lg;
-  justify-content: center;
-
-  .loading-text {
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-xs;
-  }
-
-  p {
-    margin: 0;
-    color: $color-text-primary;
-    opacity: 0.7;
-
-    &.loading-hint {
-      font-size: 0.875rem;
-    }
   }
 }
 
