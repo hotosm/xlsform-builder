@@ -1,4 +1,4 @@
-import { computed, ref, shallowRef, toRaw } from 'vue';
+import { computed, ref, shallowRef, toRaw, watch } from 'vue';
 
 import { defineStore } from 'pinia';
 
@@ -55,6 +55,52 @@ function emptyDocument(): XLSFormDocument {
   };
 }
 
+const DRAFT_STORAGE_KEY = 'xlsform-builder:draft:v1';
+const DRAFT_SAVE_DEBOUNCE_MS = 600;
+
+interface DraftEnvelope {
+  savedAt: number;
+  document: XLSFormDocument;
+}
+
+function hasLocalStorage(): boolean {
+  return typeof localStorage !== 'undefined';
+}
+
+function isXLSFormDocument(value: unknown): value is XLSFormDocument {
+  if (!value || typeof value !== 'object') return false;
+  const doc = value as Partial<XLSFormDocument>;
+  return Array.isArray(doc.survey) && Array.isArray(doc.choices) && !!doc.settings;
+}
+
+function saveDraft(doc: XLSFormDocument): number | null {
+  if (!hasLocalStorage()) return null;
+  const savedAt = Date.now();
+  const envelope: DraftEnvelope = { savedAt, document: doc };
+  try {
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(envelope));
+    return savedAt;
+  } catch {
+    // Storage unavailable/full
+    return null;
+  }
+}
+
+function loadDraft(): DraftEnvelope | null {
+  if (!hasLocalStorage()) return null;
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<DraftEnvelope> | null;
+    if (!parsed || typeof parsed.savedAt !== 'number' || !isXLSFormDocument(parsed.document)) {
+      return null;
+    }
+    return parsed as DraftEnvelope;
+  } catch {
+    return null;
+  }
+}
+
 export function createNode(type: XLSFormType, survey: SurveyNode[] = []): SurveyNode {
   const id = crypto.randomUUID();
   const name = nextAvailableName(survey, type);
@@ -103,11 +149,31 @@ function setChildrenAt(
 export const useFormStore = defineStore('form', () => {
   const document = ref<XLSFormDocument>(emptyDocument());
   const selectedNodeId = ref<string | null>(null);
+  const lastSavedAt = ref<number | null>(null);
+
+  const restoredDraft = loadDraft();
+  if (restoredDraft) {
+    document.value = restoredDraft.document;
+    lastSavedAt.value = restoredDraft.savedAt;
+  }
 
   const past = shallowRef<XLSFormDocument[]>([]);
   const future = shallowRef<XLSFormDocument[]>([]);
   let batchDepth = 0;
   let batchSnapshot: XLSFormDocument | null = null;
+  let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function scheduleDraftSave(): void {
+    if (batchDepth > 0) return;
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      saveTimer = null;
+      const savedAt = saveDraft(toRaw(document.value));
+      if (savedAt !== null) lastSavedAt.value = savedAt;
+    }, DRAFT_SAVE_DEBOUNCE_MS);
+  }
+
+  watch(document, scheduleDraftSave, { deep: true });
 
   const canUndo = computed(() => past.value.length > 0);
   const canRedo = computed(() => future.value.length > 0);
@@ -140,6 +206,7 @@ export const useFormStore = defineStore('form', () => {
       }
       batchSnapshot = null;
     }
+    if (batchDepth === 0) scheduleDraftSave();
   }
 
   function undo(): void {
@@ -323,6 +390,7 @@ export const useFormStore = defineStore('form', () => {
   return {
     document,
     selectedNodeId,
+    lastSavedAt,
     selectNode,
     addNode,
     moveNode,

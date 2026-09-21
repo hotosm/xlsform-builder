@@ -1,8 +1,38 @@
 import { createPinia, setActivePinia } from 'pinia';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useFormStore } from '@/stores/form';
 import type { XLSFormDocument } from '@/types/xlsform';
+
+const DRAFT_STORAGE_KEY = 'xlsform-builder:draft:v1';
+
+class MemoryStorage implements Storage {
+  private data = new Map<string, string>();
+
+  getItem(key: string): string | null {
+    return this.data.has(key) ? this.data.get(key)! : null;
+  }
+
+  setItem(key: string, value: string): void {
+    this.data.set(key, value);
+  }
+
+  removeItem(key: string): void {
+    this.data.delete(key);
+  }
+
+  clear(): void {
+    this.data.clear();
+  }
+
+  key(index: number): string | null {
+    return Array.from(this.data.keys())[index] ?? null;
+  }
+
+  get length(): number {
+    return this.data.size;
+  }
+}
 
 function makeSampleDocument(): XLSFormDocument {
   return {
@@ -388,5 +418,105 @@ describe('replaceChildren', () => {
     store.endHistoryBatch();
 
     expect(store.canUndo).toBe(false);
+  });
+});
+
+describe('draft persistence', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    (globalThis as unknown as { localStorage: Storage }).localStorage = new MemoryStorage();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    delete (globalThis as { localStorage?: Storage }).localStorage;
+  });
+
+  it('debounces the save: nothing is written until the debounce window elapses', () => {
+    const store = useFormStore();
+    store.addNode('text', null, 0);
+
+    expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBeNull();
+
+    vi.advanceTimersByTime(600);
+
+    expect(localStorage.getItem(DRAFT_STORAGE_KEY)).not.toBeNull();
+    expect(store.lastSavedAt).not.toBeNull();
+  });
+
+  it('coalesces rapid mutations into a single debounced save', () => {
+    const store = useFormStore();
+
+    store.addNode('text', null, 0);
+    vi.advanceTimersByTime(300);
+    store.addNode('integer', null, 1);
+    vi.advanceTimersByTime(300);
+    expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBeNull();
+
+    vi.advanceTimersByTime(300);
+    expect(localStorage.getItem(DRAFT_STORAGE_KEY)).not.toBeNull();
+  });
+
+  it('does not persist mutations made mid-batch, only once the batch ends', () => {
+    const store = useFormStore();
+    const node = store.addNode('text', null, 0);
+    vi.advanceTimersByTime(600);
+
+    store.beginHistoryBatch();
+    store.updateNode(node.id, { label: 'Changed mid-drag' });
+    vi.advanceTimersByTime(600);
+
+    const midBatchSaved = JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY)!);
+    expect(
+      midBatchSaved.document.survey.find((n: { id: string }) => n.id === node.id).label,
+    ).not.toBe('Changed mid-drag');
+
+    store.endHistoryBatch();
+    vi.advanceTimersByTime(600);
+
+    const afterBatchSaved = JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY)!);
+    expect(
+      afterBatchSaved.document.survey.find((n: { id: string }) => n.id === node.id).label,
+    ).toBe('Changed mid-drag');
+  });
+
+  it('restores a persisted draft on store creation', () => {
+    const doc: XLSFormDocument = {
+      survey: [{ id: 'q1', type: 'text', name: 'name', label: 'Restored question' }],
+      choices: [],
+      settings: { formTitle: 'Restored Form', formId: 'restored_form' },
+      languages: [],
+    };
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ savedAt: 12345, document: doc }));
+
+    const store = useFormStore();
+
+    expect(store.document.survey).toHaveLength(1);
+    expect(store.document.settings.formTitle).toBe('Restored Form');
+    expect(store.lastSavedAt).toBe(12345);
+    expect(store.canUndo).toBe(false);
+  });
+
+  it('ignores malformed localStorage JSON without throwing', () => {
+    localStorage.setItem(DRAFT_STORAGE_KEY, 'not valid json{{{');
+
+    expect(() => useFormStore()).not.toThrow();
+    expect(useFormStore().document.survey).toEqual([]);
+  });
+
+  it('ignores a draft with an unexpected shape without throwing', () => {
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ unexpected: true }));
+
+    expect(() => useFormStore()).not.toThrow();
+    expect(useFormStore().document.survey).toEqual([]);
+  });
+
+  it('does not crash when localStorage is unavailable', () => {
+    delete (globalThis as { localStorage?: Storage }).localStorage;
+
+    expect(() => useFormStore()).not.toThrow();
+    const store = useFormStore();
+    store.addNode('text', null, 0);
+    expect(() => vi.advanceTimersByTime(600)).not.toThrow();
   });
 });
