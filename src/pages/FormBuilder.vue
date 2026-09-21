@@ -1,30 +1,60 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 import BuilderCanvas from '@/components/builder/BuilderCanvas.vue';
 import { generateForm } from '@/services/llmService';
 import { useFormStore } from '@/stores/form';
+import { friendlyErrorMessage } from '@/utils/errors';
 
 const store = useFormStore();
 
 const prompt = ref('');
 const isGenerating = ref(false);
 const errorMessage = ref('');
+const confirmReplaceOpen = ref(false);
 
-async function handleGenerate() {
-  if (!prompt.value.trim()) return;
-
+async function runGeneration() {
   isGenerating.value = true;
   errorMessage.value = '';
 
   try {
     store.loadDocument(await generateForm(prompt.value.trim()));
   } catch (err) {
-    errorMessage.value = err instanceof Error ? err.message : 'Generation failed';
+    errorMessage.value = friendlyErrorMessage(err);
   } finally {
     isGenerating.value = false;
   }
 }
+
+function handleGenerate() {
+  if (!prompt.value.trim()) return;
+
+  if (store.document.survey.length > 0) {
+    confirmReplaceOpen.value = true;
+    return;
+  }
+
+  void runGeneration();
+}
+
+function confirmReplace(): void {
+  confirmReplaceOpen.value = false;
+  void runGeneration();
+}
+
+function onBeforeUnload(e: BeforeUnloadEvent): void {
+  if (store.document.survey.length === 0) return;
+  e.preventDefault();
+  e.returnValue = '';
+}
+
+onMounted(() => {
+  window.addEventListener('beforeunload', onBeforeUnload);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', onBeforeUnload);
+});
 </script>
 
 <template>
@@ -44,7 +74,7 @@ async function handleGenerate() {
       ></wa-input>
       <wa-button
         type="submit"
-        variant="danger"
+        variant="brand"
         :disabled="!prompt.trim() || isGenerating"
         :loading="isGenerating"
       >
@@ -60,14 +90,29 @@ async function handleGenerate() {
       </div>
     </div>
 
-    <div v-if="errorMessage" class="error-message">
-      <p>{{ errorMessage }}</p>
-      <wa-button variant="neutral" size="s" @click="errorMessage = ''">Dismiss</wa-button>
-    </div>
+    <wa-callout v-if="errorMessage" class="error-message" variant="danger" role="alert">
+      <wa-icon slot="icon" name="circle-exclamation" aria-hidden="true"></wa-icon>
+      <div class="error-message-body">
+        <span>{{ errorMessage }}</span>
+        <wa-button variant="neutral" size="s" @click="errorMessage = ''">Dismiss</wa-button>
+      </div>
+    </wa-callout>
 
     <div class="canvas-wrapper">
       <BuilderCanvas />
     </div>
+
+    <wa-dialog
+      :open="confirmReplaceOpen"
+      label="Replace current form?"
+      @wa-after-hide="confirmReplaceOpen = false"
+    >
+      <p>Generating a new form will replace your current form and cannot be undone.</p>
+      <div slot="footer" class="dialog-footer">
+        <wa-button variant="neutral" @click="confirmReplaceOpen = false">Cancel</wa-button>
+        <wa-button variant="danger" @click="confirmReplace">Generate Anyway</wa-button>
+      </div>
+    </wa-dialog>
   </div>
 </template>
 
@@ -128,25 +173,28 @@ async function handleGenerate() {
 }
 
 .error-message {
-  background: rgba(212, 42, 56, 0.1);
-  border: 1px solid #d42a38;
-  border-radius: $border-radius;
-  padding: $spacing-md;
   margin-bottom: $spacing-lg;
+}
+
+.error-message-body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  p {
-    margin: 0;
-    color: #d42a38;
-  }
+  gap: $spacing-md;
 }
 
 .canvas-wrapper {
+  height: 70vh;
   min-height: 32rem;
   border-radius: $border-radius;
   border: 1px solid $color-border;
   overflow: hidden;
+}
+
+.dialog-footer {
+  display: flex;
+  gap: $spacing-md;
+  justify-content: flex-end;
+  width: 100%;
 }
 </style>
