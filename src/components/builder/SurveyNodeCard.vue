@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue';
 
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { useBuilderUiStore } from '@/stores/builderUi';
 import { useFormStore } from '@/stores/form';
 import type { SurveyNode } from '@/types/xlsform';
@@ -83,7 +84,6 @@ function focusNode(nodeId: string | null): void {
 }
 
 const confirmDeleteOpen = ref(false);
-const confirmDeleteRendered = ref(false);
 
 const deleteConfirmMessage = computed(() => {
   const nodeLabel = localizedText(props.node.label, props.node.name);
@@ -101,20 +101,9 @@ function performDelete(): void {
 
 function onDelete(): void {
   if (descendantCount.value > 0) {
-    confirmDeleteRendered.value = true;
     confirmDeleteOpen.value = true;
     return;
   }
-  performDelete();
-}
-
-function onDeleteDialogHidden(): void {
-  confirmDeleteOpen.value = false;
-  confirmDeleteRendered.value = false;
-}
-
-function confirmDelete(): void {
-  confirmDeleteOpen.value = false;
   performDelete();
 }
 
@@ -234,20 +223,14 @@ function onKeydown(event: KeyboardEvent): void {
       </div>
     </Transition>
 
-    <wa-dialog
-      v-if="confirmDeleteRendered"
-      :open="confirmDeleteOpen"
+    <ConfirmDialog
+      v-model:open="confirmDeleteOpen"
       label="Delete question"
-      @click.stop
-      @keydown.stop
-      @wa-after-hide="onDeleteDialogHidden"
+      confirm-label="Delete"
+      @confirm="performDelete"
     >
       <p>{{ deleteConfirmMessage }}</p>
-      <div slot="footer" class="dialog-footer">
-        <wa-button variant="neutral" @click.stop="confirmDeleteOpen = false">Cancel</wa-button>
-        <wa-button variant="danger" @click.stop="confirmDelete">Delete</wa-button>
-      </div>
-    </wa-dialog>
+    </ConfirmDialog>
   </div>
 </template>
 
@@ -348,12 +331,5 @@ $node-control-size-touch: 44px;
   .controls-leave-active {
     transition: none;
   }
-}
-
-.dialog-footer {
-  display: flex;
-  gap: $spacing-md;
-  justify-content: flex-end;
-  width: 100%;
 }
 </style>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
 
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import BuilderCanvas from '@/components/builder/BuilderCanvas.vue';
 import { generateForm } from '@/services/llmService';
 import { useFormStore } from '@/stores/form';
@@ -34,11 +35,6 @@ function handleGenerate() {
     return;
   }
 
-  void runGeneration();
-}
-
-function confirmReplace(): void {
-  confirmReplaceOpen.value = false;
   void runGeneration();
 }
 
@@ -102,17 +98,14 @@ onUnmounted(() => {
       <BuilderCanvas />
     </div>
 
-    <wa-dialog
-      :open="confirmReplaceOpen"
+    <ConfirmDialog
+      v-model:open="confirmReplaceOpen"
       label="Replace current form?"
-      @wa-after-hide="confirmReplaceOpen = false"
+      confirm-label="Generate Anyway"
+      @confirm="runGeneration"
     >
       <p>Generating a new form will replace your current form and cannot be undone.</p>
-      <div slot="footer" class="dialog-footer">
-        <wa-button variant="neutral" @click="confirmReplaceOpen = false">Cancel</wa-button>
-        <wa-button variant="danger" @click="confirmReplace">Generate Anyway</wa-button>
-      </div>
-    </wa-dialog>
+    </ConfirmDialog>
   </div>
 </template>
 
@@ -189,12 +182,5 @@ onUnmounted(() => {
   border-radius: $border-radius;
   border: 1px solid $color-border;
   overflow: hidden;
-}
-
-.dialog-footer {
-  display: flex;
-  gap: $spacing-md;
-  justify-content: flex-end;
-  width: 100%;
 }
 </style>

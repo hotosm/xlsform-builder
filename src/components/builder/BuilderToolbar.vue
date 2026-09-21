@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue';
 
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { useFormStore } from '@/stores/form';
 import { friendlyErrorMessage } from '@/utils/errors';
 import { exportToXlsx } from '@/utils/export';
@@ -13,11 +14,6 @@ const exportError = ref('');
 const confirmClearOpen = ref(false);
 
 const questionCount = computed(() => collectNames(store.document.survey).length);
-
-function confirmClear(): void {
-  confirmClearOpen.value = false;
-  store.clearSurvey();
-}
 
 const savedAtLabel = computed(() => {
   if (store.lastSavedAt === null) return '';
@@ -107,20 +103,17 @@ async function handleExport(): Promise<void> {
       </div>
     </wa-callout>
 
-    <wa-dialog
-      :open="confirmClearOpen"
+    <ConfirmDialog
+      v-model:open="confirmClearOpen"
       label="Clear the whole form?"
-      @wa-after-hide="confirmClearOpen = false"
+      confirm-label="Clear form"
+      @confirm="store.clearSurvey()"
     >
       <p>
         This removes all {{ questionCount }} question{{ questionCount === 1 ? '' : 's' }} and their
         choice lists. You can undo it with Ctrl/Cmd+Z.
       </p>
-      <div slot="footer" class="dialog-footer">
-        <wa-button variant="neutral" @click="confirmClearOpen = false">Cancel</wa-button>
-        <wa-button variant="danger" @click="confirmClear">Clear form</wa-button>
-      </div>
-    </wa-dialog>
+    </ConfirmDialog>
   </div>
 </template>
 
@@ -142,13 +135,6 @@ async function handleExport(): Promise<void> {
 .draft-saved {
   color: $color-text-secondary;
   font-size: $font-size-small;
-}
-
-.dialog-footer {
-  display: flex;
-  gap: $spacing-md;
-  justify-content: flex-end;
-  width: 100%;
 }
 
 .export-error {
