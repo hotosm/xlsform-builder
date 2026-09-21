@@ -108,6 +108,7 @@ onUnmounted(() => {
       <QuestionPalette @announce="onAnnounce" />
       <div
         class="builder-canvas-tree"
+        tabindex="-1"
         :class="{ 'drag-active': isDragging }"
         @click.self="store.selectNode(null)"
       >

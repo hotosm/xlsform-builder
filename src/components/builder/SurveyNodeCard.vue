@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 
+import { useFormStore } from '@/stores/form';
 import type { SurveyNode } from '@/types/xlsform';
 import { localizedText } from '@/utils/localized';
 import { findParent } from '@/utils/tree';
-import { useFormStore } from '@/stores/form';
 
+import { PALETTE_LABELS } from './dragHandlers';
 import { requestInspector } from './inspectorRequest';
 
 const props = defineProps<{ node: SurveyNode; level: number }>();
@@ -55,12 +56,11 @@ function applyMove(direction: MoveDirection): void {
   }
 }
 
-function onMoveClick(direction: MoveDirection): void {
-  applyMove(direction);
-}
-
 function announceMove(direction: MoveDirection): void {
   applyMove(direction);
+  if (direction === 'in' || direction === 'out') {
+    void nextTick(() => focusNode(props.node.id));
+  }
   const result = findParent(store.document.survey, props.node.id);
   if (!result) return;
   const parentLabel = result.parent
@@ -71,6 +71,43 @@ function announceMove(direction: MoveDirection): void {
     'announce',
     `${nodeLabel} ${MOVE_VERBS[direction]}, position ${result.index + 1} of ${result.children.length} in ${parentLabel}`,
   );
+}
+
+const childCount = computed(() => props.node.children?.length ?? 0);
+
+function focusNode(nodeId: string | null): void {
+  const selector = nodeId ? `[data-node-id="${nodeId}"]` : '.builder-canvas-tree';
+  const target = document.querySelector<HTMLElement>(selector);
+  target?.focus();
+}
+
+const confirmDeleteOpen = ref(false);
+
+const deleteConfirmMessage = computed(() => {
+  const nodeLabel = localizedText(props.node.label, props.node.name);
+  return `Delete "${nodeLabel}" and its ${childCount.value} question${childCount.value === 1 ? '' : 's'} inside it? This can be undone with Ctrl/Cmd+Z.`;
+});
+
+function performDelete(): void {
+  const nodeLabel = localizedText(props.node.label, props.node.name);
+  const b = boundary.value;
+  const nextFocusId = b && b.index > 0 ? b.children[b.index - 1].id : (b?.parent?.id ?? null);
+  store.removeNode(props.node.id);
+  emit('announce', `${nodeLabel} deleted`);
+  void nextTick(() => focusNode(nextFocusId));
+}
+
+function onDelete(): void {
+  if (childCount.value > 0) {
+    confirmDeleteOpen.value = true;
+    return;
+  }
+  performDelete();
+}
+
+function confirmDelete(): void {
+  confirmDeleteOpen.value = false;
+  performDelete();
 }
 
 function select(focusInspector: boolean): void {
@@ -106,7 +143,7 @@ function onKeydown(event: KeyboardEvent): void {
   }
   if (event.key === 'Delete' || event.key === 'Backspace') {
     event.preventDefault();
-    store.removeNode(props.node.id);
+    onDelete();
   }
 }
 </script>
@@ -123,39 +160,91 @@ function onKeydown(event: KeyboardEvent): void {
     @click.stop="select(false)"
     @keydown="onKeydown"
   >
-    <span class="node-drag-handle" aria-hidden="true">⠿</span>
-    <wa-badge appearance="outlined">{{ node.type }}</wa-badge>
-    <span class="node-label">{{ localizedText(node.label, node.name) }}</span>
+    <wa-icon
+      name="grip-vertical"
+      class="node-drag-handle"
+      title="Drag to reorder"
+      aria-hidden="true"
+    ></wa-icon>
+    <wa-badge appearance="outlined">{{ PALETTE_LABELS[node.type] ?? node.type }}</wa-badge>
+    <span class="node-label">
+      {{ localizedText(node.label, node.name) }}
+      <span v-if="node.required === 'true'" class="required-mark" title="Required">
+        *
+        <span class="sr-only">Required</span>
+      </span>
+    </span>
     <span class="node-name">{{ node.name }}</span>
 
-    <div v-if="selected" class="node-controls">
-      <button type="button" :disabled="!canMoveUp" aria-label="Move up" @click.stop="onMoveClick('up')">
-        ↑
-      </button>
-      <button
-        type="button"
-        :disabled="!canMoveDown"
-        aria-label="Move down"
-        @click.stop="onMoveClick('down')"
-      >
-        ↓
-      </button>
-      <button type="button" :disabled="!canMoveIn" aria-label="Move in" @click.stop="onMoveClick('in')">
-        →
-      </button>
-      <button
-        type="button"
-        :disabled="!canMoveOut"
-        aria-label="Move out"
-        @click.stop="onMoveClick('out')"
-      >
-        ←
-      </button>
-    </div>
+    <Transition name="controls">
+      <div v-if="selected" class="node-controls">
+        <wa-button
+          appearance="outlined"
+          size="s"
+          :disabled="!canMoveUp"
+          title="Move up (Alt+↑)"
+          @click.stop="announceMove('up')"
+        >
+          <wa-icon name="arrow-up" label="Move up"></wa-icon>
+        </wa-button>
+        <wa-button
+          appearance="outlined"
+          size="s"
+          :disabled="!canMoveDown"
+          title="Move down (Alt+↓)"
+          @click.stop="announceMove('down')"
+        >
+          <wa-icon name="arrow-down" label="Move down"></wa-icon>
+        </wa-button>
+        <wa-button
+          v-if="canMoveIn"
+          appearance="outlined"
+          size="s"
+          title="Nest into previous group (Alt+→)"
+          @click.stop="announceMove('in')"
+        >
+          <wa-icon name="indent" label="Nest into previous group"></wa-icon>
+        </wa-button>
+        <wa-button
+          v-if="canMoveOut"
+          appearance="outlined"
+          size="s"
+          title="Move out of group (Alt+←)"
+          @click.stop="announceMove('out')"
+        >
+          <wa-icon name="outdent" label="Move out of group"></wa-icon>
+        </wa-button>
+        <wa-button
+          appearance="outlined"
+          variant="danger"
+          size="s"
+          title="Delete (Backspace)"
+          @click.stop="onDelete"
+        >
+          <wa-icon name="trash" label="Delete question"></wa-icon>
+        </wa-button>
+      </div>
+    </Transition>
+
+    <wa-dialog
+      :open="confirmDeleteOpen"
+      label="Delete question"
+      @click.stop
+      @wa-after-hide="confirmDeleteOpen = false"
+    >
+      <p>{{ deleteConfirmMessage }}</p>
+      <div slot="footer" class="dialog-footer">
+        <wa-button variant="neutral" @click.stop="confirmDeleteOpen = false">Cancel</wa-button>
+        <wa-button variant="danger" @click.stop="confirmDelete">Delete</wa-button>
+      </div>
+    </wa-dialog>
   </div>
 </template>
 
 <style scoped lang="scss">
+$node-control-size: 1.875rem;
+$node-control-size-touch: 44px;
+
 .survey-node-card {
   display: flex;
   flex-wrap: wrap;
@@ -166,6 +255,19 @@ function onKeydown(event: KeyboardEvent): void {
   border-radius: $border-radius;
   background: $color-bg-surface;
   cursor: pointer;
+  min-height: calc(#{$node-control-size} + 2 * #{$spacing-sm} + 2px);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+
+  @media (max-width: #{$bp-md - 1px}) {
+    min-height: calc(#{$node-control-size-touch} + 2 * #{$spacing-sm} + 2px);
+  }
+
+  &:hover:not(.selected) {
+    border-color: $color-border-light;
+    background: $color-bg-primary;
+  }
 
   &:focus-visible {
     outline: 2px solid $color-primary;
@@ -180,8 +282,7 @@ function onKeydown(event: KeyboardEvent): void {
 
 .node-drag-handle {
   cursor: grab;
-  color: $color-text-primary;
-  opacity: 0.5;
+  color: $color-text-secondary;
 
   &:active {
     cursor: grabbing;
@@ -193,9 +294,13 @@ function onKeydown(event: KeyboardEvent): void {
   color: $color-text-primary;
 }
 
+.required-mark {
+  color: $color-primary;
+  font-weight: $font-weight-bold;
+}
+
 .node-name {
-  color: $color-text-primary;
-  opacity: 0.6;
+  color: $color-text-secondary;
   font-size: $font-size-small;
 }
 
@@ -204,32 +309,41 @@ function onKeydown(event: KeyboardEvent): void {
   gap: $spacing-xs;
   margin-left: auto;
 
-  button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    border: 1px solid $color-border;
-    border-radius: $border-radius;
-    background: $color-bg-primary;
-    color: $color-text-primary;
-    cursor: pointer;
+  wa-button {
+    --wa-form-control-height: #{$node-control-size};
+  }
 
-    &:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
-    }
-
-    &:hover:not(:disabled) {
-      border-color: $color-primary;
-    }
-
-    &:focus-visible {
-      outline: 2px solid $color-primary;
-      outline-offset: 2px;
+  @media (max-width: #{$bp-md - 1px}) {
+    wa-button {
+      --wa-form-control-height: #{$node-control-size-touch};
     }
   }
+}
+
+.controls-enter-active,
+.controls-leave-active {
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+
+.controls-enter-from,
+.controls-leave-to {
+  opacity: 0;
+  transform: translateX(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .controls-enter-active,
+  .controls-leave-active {
+    transition: none;
+  }
+}
+
+.dialog-footer {
+  display: flex;
+  gap: $spacing-md;
+  justify-content: flex-end;
+  width: 100%;
 }
 </style>
