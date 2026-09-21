@@ -67,7 +67,7 @@ async function handleExport(): Promise<void> {
   <div class="builder-toolbar">
     <wa-button
       v-if="showAddQuestion"
-      variant="brand"
+      variant="danger"
       size="s"
       title="Add question"
       @click="emit('addQuestion')"
@@ -119,7 +119,7 @@ async function handleExport(): Promise<void> {
     </wa-button>
     <span v-if="savedAtLabel" class="draft-saved">{{ savedAtLabel }}</span>
     <wa-button
-      variant="brand"
+      variant="danger"
       size="s"
       class="export-button"
       :loading="isExporting"

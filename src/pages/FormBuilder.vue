@@ -68,7 +68,7 @@ onUnmounted(() => {
       ></wa-input>
       <wa-button
         type="submit"
-        variant="brand"
+        variant="neutral"
         :disabled="!prompt.trim() || isGenerating"
         :loading="isGenerating"
       >
