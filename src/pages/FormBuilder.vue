@@ -111,7 +111,10 @@ onUnmounted(() => {
 .builder-page {
   max-width: 90rem;
   margin: 0 auto;
-  padding: $spacing-lg;
+
+  @include bp(md) {
+    padding: $spacing-lg;
+  }
 }
 
 .builder-header {
@@ -130,8 +133,14 @@ onUnmounted(() => {
 
 .prompt-form {
   display: flex;
-  gap: $spacing-md;
+  flex-direction: column;
+  gap: $spacing-sm;
   margin-bottom: $spacing-lg;
+
+  @include bp(md) {
+    flex-direction: row;
+    gap: $spacing-md;
+  }
 
   wa-input {
     flex: 1;
@@ -174,10 +183,15 @@ onUnmounted(() => {
 }
 
 .canvas-wrapper {
-  height: 70vh;
-  min-height: 32rem;
+  height: 85dvh;
+  min-height: 28rem;
   border-radius: $border-radius;
   border: 1px solid $color-border;
   overflow: hidden;
+
+  @include bp(lg) {
+    height: 70vh;
+    min-height: 32rem;
+  }
 }
 </style>
