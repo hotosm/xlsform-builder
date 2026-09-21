@@ -752,7 +752,7 @@ function removeChoice(draft: ChoiceDraft): void {
 }
 
 .field-error {
-  color: $color-primary;
+  color: var(--wa-color-danger-on-quiet);
   font-weight: $font-weight-semibold;
 }
 

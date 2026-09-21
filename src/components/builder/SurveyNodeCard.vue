@@ -223,8 +223,8 @@ function onKeydown(event: KeyboardEvent): void {
           <wa-icon name="outdent" label="Move out of group"></wa-icon>
         </wa-button>
         <wa-button
+          class="node-delete-button"
           appearance="outlined"
-          variant="danger"
           size="s"
           title="Delete (Backspace)"
           @click.stop="onDelete"
@@ -305,7 +305,7 @@ $node-control-size-touch: 44px;
 }
 
 .required-mark {
-  color: $color-primary;
+  color: $color-text-secondary;
   font-weight: $font-weight-bold;
 }
 
@@ -328,6 +328,12 @@ $node-control-size-touch: 44px;
       --wa-form-control-height: #{$node-control-size-touch};
     }
   }
+}
+
+.node-delete-button::part(base):hover,
+.node-delete-button::part(base):focus-visible {
+  border-color: var(--wa-color-danger-border-loud);
+  color: var(--wa-color-danger-on-quiet);
 }
 
 .node-edit-button {
