@@ -159,6 +159,7 @@ function addItem(item: PaletteItem): void {
           :group="{ name: 'survey-tree', pull: 'clone', put: false }"
           :clone="cloneItem"
           :sort="false"
+          :disabled="closable"
           :delay="200"
           :delay-on-touch-only="true"
           @start="onDragStart"
@@ -169,6 +170,7 @@ function addItem(item: PaletteItem): void {
             v-show="matchedItems.has(item)"
             :key="item.type"
             class="palette-item"
+            :class="{ 'palette-item-static': closable }"
             appearance="outlined"
             variant="neutral"
             @click="addItem(item)"
@@ -303,6 +305,10 @@ function addItem(item: PaletteItem): void {
   &::part(button):active {
     border-color: $color-neutral-700;
     cursor: grabbing;
+  }
+
+  &.palette-item-static::part(button) {
+    cursor: pointer;
   }
 
   &::part(start) {
