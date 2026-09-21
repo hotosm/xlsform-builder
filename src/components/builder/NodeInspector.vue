@@ -58,6 +58,7 @@ const choiceFilter = ref('');
 const listNameDraft = ref('');
 
 interface ChoiceDraft {
+  id: string;
   originalName: string;
   name: string;
   label: string;
@@ -87,7 +88,13 @@ function seedFromNode(): void {
   const list = n.listName
     ? store.document.choices.find((c) => c.listName === n.listName)
     : undefined;
+  // Reuse row ids across reseeds so v-for keeps each wa-input bound to its choice.
+  const previousIds = new Map<string, string[]>();
+  for (const d of choiceDrafts.value) {
+    previousIds.set(d.originalName, [...(previousIds.get(d.originalName) ?? []), d.id]);
+  }
   choiceDrafts.value = (list?.choices ?? []).map((c) => ({
+    id: previousIds.get(c.name)?.shift() ?? crypto.randomUUID(),
     originalName: c.name,
     name: c.name,
     label: localizedText(c.label, c.name),
@@ -455,7 +462,7 @@ function removeChoice(draft: ChoiceDraft): void {
               <span>Saved value</span>
               <span></span>
             </div>
-            <div v-for="(draft, i) in choiceDrafts" :key="i" class="choice-row">
+            <div v-for="(draft, i) in choiceDrafts" :key="draft.id" class="choice-row">
               <wa-input
                 v-model="draft.label"
                 size="s"
