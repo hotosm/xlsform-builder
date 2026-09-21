@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 
 import { useFormStore } from '@/stores/form';
-import { exportToXlsx } from '@/utils/export';
 import { friendlyErrorMessage } from '@/utils/errors';
+import { exportToXlsx } from '@/utils/export';
 import { collectNames } from '@/utils/tree';
 
 const store = useFormStore();
@@ -28,10 +28,17 @@ const savedAtLabel = computed(() => {
   return `Draft saved ${time}`;
 });
 
-function handleExport(): void {
+async function waitForPaint(): Promise<void> {
+  await nextTick();
+  await new Promise<void>((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
+}
+
+async function handleExport(): Promise<void> {
+  if (isExporting.value) return;
   isExporting.value = true;
   exportError.value = '';
   try {
+    await waitForPaint();
     const data = exportToXlsx(store.document);
     const blob = new Blob([data as BlobPart], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
