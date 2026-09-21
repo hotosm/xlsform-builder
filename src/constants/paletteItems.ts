@@ -196,10 +196,6 @@ export const PALETTE_ITEMS: PaletteItem[] = [
   },
 ];
 
-export const PALETTE_LABELS: Record<XLSFormType, string> = PALETTE_ITEMS.reduce(
-  (acc, item) => {
-    acc[item.type] = item.label;
-    return acc;
-  },
-  {} as Record<XLSFormType, string>,
+export const PALETTE_LABELS: Partial<Record<XLSFormType, string>> = Object.fromEntries(
+  PALETTE_ITEMS.map((item) => [item.type, item.label]),
 );
