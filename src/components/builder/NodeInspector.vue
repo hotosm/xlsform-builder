@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { type Ref, computed, onBeforeUnmount, ref, watch } from 'vue';
 
 import { PALETTE_LABELS } from '@/constants/paletteItems';
 import { useFormStore } from '@/stores/form';
+import type { ChoiceList, SurveyNode } from '@/types/xlsform';
 import { localizedText } from '@/utils/localized';
 import { collectNames, countListUsages, findNode } from '@/utils/tree';
 
@@ -65,28 +66,44 @@ interface ChoiceDraft {
 
 const choiceDrafts = ref<ChoiceDraft[]>([]);
 
-function seedFromNode(): void {
-  const n = node.value;
+const FIELDS: [Ref<string> | Ref<boolean>, (n: SurveyNode) => string | boolean][] = [
+  [name, (n) => n.name],
+  [label, (n) => localizedText(n.label, n.name)],
+  [hint, (n) => (n.hint ? localizedText(n.hint) : '')],
+  [required, (n) => n.required === 'true'],
+  [relevant, (n) => n.relevant ?? ''],
+  [calculation, (n) => n.calculation ?? ''],
+  [appearance, (n) => n.appearance ?? ''],
+  [constraint, (n) => n.constraint ?? ''],
+  [constraintMessage, (n) => (n.constraintMessage ? localizedText(n.constraintMessage) : '')],
+  [defaultValue, (n) => n.default ?? ''],
+  [readonly, (n) => n.readonly === 'true'],
+  [repeatCount, (n) => n.repeatCount ?? ''],
+  [choiceFilter, (n) => n.choiceFilter ?? ''],
+  [listNameDraft, (n) => n.listName ?? ''],
+];
+
+function seedFromNode(n: SurveyNode | null): void {
   if (!n) return;
   nameError.value = '';
-  name.value = n.name;
-  label.value = localizedText(n.label, n.name);
-  hint.value = n.hint ? localizedText(n.hint) : '';
-  required.value = n.required === 'true';
-  relevant.value = n.relevant ?? '';
-  calculation.value = n.calculation ?? '';
-  appearance.value = n.appearance ?? '';
-  constraint.value = n.constraint ?? '';
-  constraintMessage.value = n.constraintMessage ? localizedText(n.constraintMessage) : '';
-  defaultValue.value = n.default ?? '';
-  readonly.value = n.readonly === 'true';
-  repeatCount.value = n.repeatCount ?? '';
-  choiceFilter.value = n.choiceFilter ?? '';
-  listNameDraft.value = n.listName ?? '';
+  for (const [field, read] of FIELDS) field.value = read(n);
+}
 
-  const list = n.listName
-    ? store.document.choices.find((c) => c.listName === n.listName)
-    : undefined;
+function syncChangedFields(n: SurveyNode | null, previous: SurveyNode | null): void {
+  if (!n || !previous || n.id !== previous.id) return;
+  if (n.name !== previous.name) nameError.value = '';
+  for (const [field, read] of FIELDS) {
+    const value = read(n);
+    if (value !== read(previous)) field.value = value;
+  }
+}
+
+const currentList = computed(() => {
+  const listName = node.value?.listName;
+  return listName ? store.document.choices.find((c) => c.listName === listName) : undefined;
+});
+
+function seedChoices(list: ChoiceList | undefined): void {
   // Reuse row ids across reseeds so v-for keeps each wa-input bound to its choice.
   const previousIds = new Map<string, string[]>();
   for (const d of choiceDrafts.value) {
@@ -107,7 +124,13 @@ const listUsageCount = computed(() => {
   return Math.max(0, countListUsages(store.document.survey, node.value.listName) - 1);
 });
 
-watch(node, seedFromNode, { immediate: true });
+watch(
+  () => node.value?.id,
+  () => seedFromNode(node.value),
+  { immediate: true },
+);
+watch(node, syncChangedFields);
+watch(currentList, seedChoices, { immediate: true });
 
 // --- ${name} reference checking:
 
@@ -330,7 +353,7 @@ function commitListName(): void {
   } else if (listNameDraft.value && listNameDraft.value !== node.value.listName) {
     store.updateNode(node.value.id, { listName: listNameDraft.value });
   }
-  seedFromNode();
+  listNameDraft.value = node.value.listName ?? '';
 }
 
 function commitChoice(draft: ChoiceDraft): void {
@@ -345,13 +368,11 @@ function commitChoice(draft: ChoiceDraft): void {
 function addChoice(): void {
   if (!node.value?.listName) return;
   store.addChoice(node.value.listName);
-  seedFromNode();
 }
 
 function removeChoice(draft: ChoiceDraft): void {
   if (!node.value?.listName) return;
   store.removeChoice(node.value.listName, draft.originalName);
-  seedFromNode();
 }
 </script>
 
