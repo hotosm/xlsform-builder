@@ -165,7 +165,9 @@ function onKeydown(event: KeyboardEvent): void {
       title="Drag to reorder"
       aria-hidden="true"
     ></wa-icon>
-    <wa-badge appearance="outlined">{{ PALETTE_LABELS[node.type] ?? node.type }}</wa-badge>
+    <wa-badge appearance="outlined" variant="neutral">
+      {{ PALETTE_LABELS[node.type] ?? node.type }}
+    </wa-badge>
     <span class="node-label">
       {{ localizedText(node.label, node.name) }}
       <span v-if="node.required === 'true'" class="required-mark" title="Required">

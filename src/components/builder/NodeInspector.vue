@@ -539,7 +539,7 @@ function removeChoice(draft: ChoiceDraft): void {
       >
         <span slot="label" class="section-label">
           Logic
-          <wa-badge v-if="logicCount > 0" appearance="filled" variant="brand" pill>
+          <wa-badge v-if="logicCount > 0" appearance="filled" variant="neutral" pill>
             {{ logicCount }}
           </wa-badge>
         </span>
@@ -578,7 +578,7 @@ function removeChoice(draft: ChoiceDraft): void {
       >
         <span slot="label" class="section-label">
           Validation
-          <wa-badge v-if="validationCount > 0" appearance="filled" variant="brand" pill>
+          <wa-badge v-if="validationCount > 0" appearance="filled" variant="neutral" pill>
             {{ validationCount }}
           </wa-badge>
         </span>
@@ -610,7 +610,7 @@ function removeChoice(draft: ChoiceDraft): void {
       >
         <span slot="label" class="section-label">
           Advanced
-          <wa-badge v-if="advancedCount > 0" appearance="filled" variant="brand" pill>
+          <wa-badge v-if="advancedCount > 0" appearance="filled" variant="neutral" pill>
             {{ advancedCount }}
           </wa-badge>
         </span>
