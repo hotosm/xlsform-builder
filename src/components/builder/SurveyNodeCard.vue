@@ -4,7 +4,7 @@ import { computed, nextTick, ref } from 'vue';
 import { useFormStore } from '@/stores/form';
 import type { SurveyNode } from '@/types/xlsform';
 import { localizedText } from '@/utils/localized';
-import { findParent } from '@/utils/tree';
+import { collectNames, findParent } from '@/utils/tree';
 
 import { PALETTE_LABELS } from './dragHandlers';
 import { requestInspector } from './inspectorRequest';
@@ -73,7 +73,7 @@ function announceMove(direction: MoveDirection): void {
   );
 }
 
-const childCount = computed(() => props.node.children?.length ?? 0);
+const descendantCount = computed(() => collectNames(props.node.children ?? []).length);
 
 function focusNode(nodeId: string | null): void {
   const selector = nodeId ? `[data-node-id="${nodeId}"]` : '.builder-canvas-tree';
@@ -85,7 +85,7 @@ const confirmDeleteOpen = ref(false);
 
 const deleteConfirmMessage = computed(() => {
   const nodeLabel = localizedText(props.node.label, props.node.name);
-  return `Delete "${nodeLabel}" and its ${childCount.value} question${childCount.value === 1 ? '' : 's'} inside it? This can be undone with Ctrl/Cmd+Z.`;
+  return `Delete "${nodeLabel}" and its ${descendantCount.value} question${descendantCount.value === 1 ? '' : 's'} inside it? This can be undone with Ctrl/Cmd+Z.`;
 });
 
 function performDelete(): void {
@@ -98,7 +98,7 @@ function performDelete(): void {
 }
 
 function onDelete(): void {
-  if (childCount.value > 0) {
+  if (descendantCount.value > 0) {
     confirmDeleteOpen.value = true;
     return;
   }
