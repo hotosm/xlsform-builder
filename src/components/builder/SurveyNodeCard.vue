@@ -82,6 +82,7 @@ function focusNode(nodeId: string | null): void {
 }
 
 const confirmDeleteOpen = ref(false);
+const confirmDeleteRendered = ref(false);
 
 const deleteConfirmMessage = computed(() => {
   const nodeLabel = localizedText(props.node.label, props.node.name);
@@ -99,10 +100,16 @@ function performDelete(): void {
 
 function onDelete(): void {
   if (descendantCount.value > 0) {
+    confirmDeleteRendered.value = true;
     confirmDeleteOpen.value = true;
     return;
   }
   performDelete();
+}
+
+function onDeleteDialogHidden(): void {
+  confirmDeleteOpen.value = false;
+  confirmDeleteRendered.value = false;
 }
 
 function confirmDelete(): void {
@@ -227,10 +234,12 @@ function onKeydown(event: KeyboardEvent): void {
     </Transition>
 
     <wa-dialog
+      v-if="confirmDeleteRendered"
       :open="confirmDeleteOpen"
       label="Delete question"
       @click.stop
-      @wa-after-hide="confirmDeleteOpen = false"
+      @keydown.stop
+      @wa-after-hide="onDeleteDialogHidden"
     >
       <p>{{ deleteConfirmMessage }}</p>
       <div slot="footer" class="dialog-footer">
