@@ -104,7 +104,7 @@ onUnmounted(() => {
   <div class="builder-canvas">
     <BuilderToolbar />
     <div class="builder-canvas-body">
-      <QuestionPalette />
+      <QuestionPalette @announce="onAnnounce" />
       <div class="builder-canvas-tree" @click.self="store.selectNode(null)">
         <SurveyNodeList :parent-id="null" :nodes="store.document.survey" @announce="onAnnounce" />
       </div>
