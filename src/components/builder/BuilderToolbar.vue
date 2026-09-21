@@ -113,7 +113,7 @@ async function handleExport(): Promise<void> {
     >
       <p>
         This removes all {{ questionCount }} question{{ questionCount === 1 ? '' : 's' }} and their
-        choice lists. You can undo it with Ctrl/Cmd+Z.
+        choice lists. You can undo this.
       </p>
     </ConfirmDialog>
   </div>

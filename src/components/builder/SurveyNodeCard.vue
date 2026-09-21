@@ -89,7 +89,7 @@ const confirmDeleteOpen = ref(false);
 
 const deleteConfirmMessage = computed(() => {
   const nodeLabel = localizedText(props.node.label, props.node.name);
-  return `Delete "${nodeLabel}" and its ${descendantCount.value} question${descendantCount.value === 1 ? '' : 's'} inside it? This can be undone with Ctrl/Cmd+Z.`;
+  return `Delete "${nodeLabel}" and its ${descendantCount.value} question${descendantCount.value === 1 ? '' : 's'} inside it? You can undo this.`;
 });
 
 function performDelete(): void {
