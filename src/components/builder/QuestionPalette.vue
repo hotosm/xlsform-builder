@@ -23,41 +23,48 @@ interface PaletteCategory {
   items: PaletteItem[];
 }
 
-const categories = ref<PaletteCategory[]>(
-  Object.values(
-    PALETTE_ITEMS.reduce<Record<string, PaletteCategory>>((acc, item) => {
-      (acc[item.category] ??= { label: item.category, items: [] }).items.push(item);
-      return acc;
-    }, {}),
-  ),
+const categories: PaletteCategory[] = Object.values(
+  PALETTE_ITEMS.reduce<Record<string, PaletteCategory>>((acc, item) => {
+    (acc[item.category] ??= { label: item.category, items: [] }).items.push(item);
+    return acc;
+  }, {}),
 );
 
 const expandedCategories = ref<Set<string>>(new Set());
 
 const searchQuery = ref('');
 
-function itemMatches(item: PaletteItem): boolean {
-  const q = searchQuery.value.trim().toLowerCase();
-  if (!q) return true;
-  return [item.label, item.type, ...(item.keywords ?? [])].some((term) =>
-    term.toLowerCase().includes(q),
+const normalizedQuery = computed(() => searchQuery.value.trim().toLowerCase());
+
+const matchedItems = computed(() => {
+  const q = normalizedQuery.value;
+  if (!q) return new Set(PALETTE_ITEMS);
+  return new Set(
+    PALETTE_ITEMS.filter((item) =>
+      [item.label, item.type, ...(item.keywords ?? [])].some((term) =>
+        term.toLowerCase().includes(q),
+      ),
+    ),
   );
-}
-
-function categoryHasMatch(cat: PaletteCategory): boolean {
-  return cat.items.some(itemMatches);
-}
-
-const visibleCategories = computed(() => {
-  if (!searchQuery.value.trim()) return categories.value;
-  return categories.value.filter(categoryHasMatch);
 });
 
-watch(searchQuery, () => {
-  if (!searchQuery.value.trim()) return;
-  for (const cat of categories.value) {
-    if (categoryHasMatch(cat)) expandedCategories.value.add(cat.label);
-  }
+const matchCounts = computed(
+  () =>
+    new Map(
+      categories.map((cat) => [
+        cat.label,
+        cat.items.filter((item) => matchedItems.value.has(item)).length,
+      ]),
+    ),
+);
+
+const visibleCategories = computed(() =>
+  categories.filter((cat) => (matchCounts.value.get(cat.label) ?? 0) > 0),
+);
+
+watch(normalizedQuery, (q) => {
+  if (!q) return;
+  for (const cat of visibleCategories.value) expandedCategories.value.add(cat.label);
 });
 
 function isExpanded(cat: PaletteCategory): boolean {
@@ -138,11 +145,11 @@ function addItem(item: PaletteItem): void {
         <span slot="label" class="palette-category">
           <span class="palette-category-label">{{ cat.label }}</span>
           <wa-badge appearance="filled" variant="neutral" pill>
-            {{ cat.items.filter(itemMatches).length }}
+            {{ matchCounts.get(cat.label) }}
           </wa-badge>
         </span>
         <VueDraggable
-          v-model="cat.items"
+          :model-value="cat.items"
           class="palette-list"
           :group="{ name: 'survey-tree', pull: 'clone', put: false }"
           :clone="cloneItem"
@@ -152,7 +159,7 @@ function addItem(item: PaletteItem): void {
         >
           <wa-button
             v-for="item in cat.items"
-            v-show="itemMatches(item)"
+            v-show="matchedItems.has(item)"
             :key="item.type"
             class="palette-item"
             appearance="outlined"
