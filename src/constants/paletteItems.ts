@@ -199,3 +199,7 @@ export const PALETTE_ITEMS: PaletteItem[] = [
 export const PALETTE_LABELS: Partial<Record<XLSFormType, string>> = Object.fromEntries(
   PALETTE_ITEMS.map((item) => [item.type, item.label]),
 );
+
+export const PALETTE_ICONS: Partial<Record<XLSFormType, string>> = Object.fromEntries(
+  PALETTE_ITEMS.map((item) => [item.type, item.icon]),
+);

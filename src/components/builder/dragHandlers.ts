@@ -1,11 +1,16 @@
-import { PALETTE_ITEMS, PALETTE_LABELS, type PaletteItem } from '@/constants/paletteItems';
+import {
+  PALETTE_ICONS,
+  PALETTE_ITEMS,
+  PALETTE_LABELS,
+  type PaletteItem,
+} from '@/constants/paletteItems';
 import { createNode, type useFormStore } from '@/stores/form';
 import type { SurveyNode } from '@/types/xlsform';
 import { findNode, findParent } from '@/utils/tree';
 
 export type FormStore = ReturnType<typeof useFormStore>;
 
-export { PALETTE_ITEMS, PALETTE_LABELS, type PaletteItem };
+export { PALETTE_ICONS, PALETTE_ITEMS, PALETTE_LABELS, type PaletteItem };
 
 export function clonePaletteItem(item: PaletteItem, survey: SurveyNode[] = []): SurveyNode {
   return createNode(item.type, survey);

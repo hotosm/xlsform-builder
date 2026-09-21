@@ -9,7 +9,7 @@ import { localizedText } from '@/utils/localized';
 import { collectNames, findParent } from '@/utils/tree';
 
 import { TREE_SELECTOR, findNodeElement } from './domSelectors';
-import { PALETTE_LABELS } from './dragHandlers';
+import { PALETTE_ICONS, PALETTE_LABELS } from './dragHandlers';
 
 const props = defineProps<{ node: SurveyNode; level: number }>();
 const emit = defineEmits<{ announce: [message: string] }>();
@@ -165,9 +165,12 @@ function onKeydown(event: KeyboardEvent): void {
       title="Drag to reorder"
       aria-hidden="true"
     ></wa-icon>
-    <wa-badge appearance="outlined" variant="neutral">
-      {{ PALETTE_LABELS[node.type] ?? node.type }}
-    </wa-badge>
+    <wa-icon
+      class="node-type-icon"
+      :name="PALETTE_ICONS[node.type] ?? 'question'"
+      :label="PALETTE_LABELS[node.type] ?? node.type"
+      :title="PALETTE_LABELS[node.type] ?? node.type"
+    ></wa-icon>
     <span class="node-label">
       {{ localizedText(node.label, node.name) }}
       <span v-if="node.required === 'true'" class="required-mark" title="Required">
@@ -285,6 +288,12 @@ $node-control-size-touch: 44px;
     background: $color-bg-primary;
     box-shadow: inset 0 0 0 1px $color-neutral-700;
   }
+}
+
+.node-type-icon {
+  flex-shrink: 0;
+  width: 1.25rem;
+  color: $color-text-secondary;
 }
 
 .node-drag-handle {
