@@ -2,6 +2,7 @@ import { computed, ref, shallowRef, toRaw } from 'vue';
 
 import { defineStore } from 'pinia';
 
+import { PALETTE_LABELS } from '@/components/builder/paletteItems';
 import type {
   Choice,
   FormSettings,
@@ -14,9 +15,34 @@ import {
   findParent,
   insertNode,
   moveNode as moveNodeInTree,
+  nextAvailableName,
   removeNode as removeNodeInTree,
   updateNode as updateNodeInTree,
 } from '@/utils/tree';
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function nextLabelNumber(survey: SurveyNode[], prefix: string): number {
+  const used = new Set<number>();
+  const pattern = new RegExp(`^${escapeRegExp(prefix)} (\\d+)$`);
+
+  function walk(nodes: SurveyNode[]): void {
+    for (const node of nodes) {
+      if (typeof node.label === 'string') {
+        const match = pattern.exec(node.label);
+        if (match) used.add(Number(match[1]));
+      }
+      if (node.children) walk(node.children);
+    }
+  }
+
+  walk(survey);
+  let n = 1;
+  while (used.has(n)) n++;
+  return n;
+}
 
 const HISTORY_LIMIT = 50;
 
@@ -29,15 +55,16 @@ function emptyDocument(): XLSFormDocument {
   };
 }
 
-export function createNode(type: XLSFormType): SurveyNode {
+export function createNode(type: XLSFormType, survey: SurveyNode[] = []): SurveyNode {
   const id = crypto.randomUUID();
-  const name = `${type}_${id.slice(0, 8)}`;
+  const name = nextAvailableName(survey, type);
+  const friendlyLabel = PALETTE_LABELS[type] ?? type;
 
   const node: SurveyNode = {
     id,
     type,
     name,
-    label: 'New question',
+    label: `${friendlyLabel} ${nextLabelNumber(survey, friendlyLabel)}`,
   };
 
   if (type === 'group' || type === 'repeat') {
@@ -137,7 +164,7 @@ export const useFormStore = defineStore('form', () => {
 
   function addNode(type: XLSFormType, parentId: string | null, index: number): SurveyNode {
     beginHistoryBatch();
-    const node = createNode(type);
+    const node = createNode(type, toRaw(document.value).survey);
     document.value.survey = insertNode(toRaw(document.value).survey, parentId, index, node);
     selectedNodeId.value = node.id;
     if (node.listName) {

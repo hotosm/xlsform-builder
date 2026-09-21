@@ -126,6 +126,24 @@ describe('addNode', () => {
 
     expect(store.document.choices).toHaveLength(0);
   });
+
+  it('defaults the label to the friendly type name plus a number', () => {
+    const store = useFormStore();
+
+    const node = store.addNode('select_one', null, 0);
+
+    expect(node.label).toBe('Select One 1');
+  });
+
+  it('gives sequential adds of the same type distinct default labels', () => {
+    const store = useFormStore();
+
+    const first = store.addNode('integer', null, 0);
+    const second = store.addNode('integer', null, 1);
+
+    expect(first.label).toBe('Integer 1');
+    expect(second.label).toBe('Integer 2');
+  });
 });
 
 describe('boundary no-ops', () => {
