@@ -8,6 +8,7 @@ import { useFormStore } from '@/stores/form';
 import { localizedText } from '@/utils/localized';
 import { findNode } from '@/utils/tree';
 
+import { findNodeElement } from './domSelectors';
 import { PALETTE_ITEMS, type PaletteItem, clonePaletteItem, paletteTarget } from './dragHandlers';
 
 const emit = defineEmits<{ announce: [message: string] }>();
@@ -107,11 +108,7 @@ function addItem(item: PaletteItem): void {
   const node = store.addNode(item.type, parentId, index);
   emit('announce', `${item.label} question added`);
   ui.requestInspector(node.id, false);
-  void nextTick(() => {
-    document
-      .querySelector<HTMLElement>(`[data-node-id="${node.id}"]`)
-      ?.scrollIntoView({ block: 'nearest' });
-  });
+  void nextTick(() => findNodeElement(node.id)?.scrollIntoView({ block: 'nearest' }));
 }
 </script>
 

@@ -8,6 +8,7 @@ import type { SurveyNode } from '@/types/xlsform';
 import { localizedText } from '@/utils/localized';
 import { collectNames, findParent } from '@/utils/tree';
 
+import { TREE_SELECTOR, findNodeElement } from './domSelectors';
 import { PALETTE_LABELS } from './dragHandlers';
 
 const props = defineProps<{ node: SurveyNode; level: number }>();
@@ -78,8 +79,9 @@ function announceMove(direction: MoveDirection): void {
 const descendantCount = computed(() => collectNames(props.node.children ?? []).length);
 
 function focusNode(nodeId: string | null): void {
-  const selector = nodeId ? `[data-node-id="${nodeId}"]` : '.builder-canvas-tree';
-  const target = document.querySelector<HTMLElement>(selector);
+  const target = nodeId
+    ? findNodeElement(nodeId)
+    : document.querySelector<HTMLElement>(TREE_SELECTOR);
   target?.focus();
 }
 

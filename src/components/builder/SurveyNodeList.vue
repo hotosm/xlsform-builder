@@ -9,6 +9,7 @@ import type { SurveyNode } from '@/types/xlsform';
 import { localizedText } from '@/utils/localized';
 
 import SurveyNodeCard from './SurveyNodeCard.vue';
+import { PALETTE_SELECTOR } from './domSelectors';
 import { commitDroppedNode } from './dragHandlers';
 
 defineOptions({ name: 'SurveyNodeList' });
@@ -39,7 +40,7 @@ const model = computed<SurveyNode[]>({
 function onAdd(event: DraggableEvent<SurveyNode>): void {
   const node = event.clonedData ?? event.data;
   commitDroppedNode(store, node);
-  if (event.from.closest('.question-palette')) ui.requestInspector(node.id, true);
+  if (event.from.closest(PALETTE_SELECTOR)) ui.requestInspector(node.id, true);
   emit('announce', `${localizedText(node.label, node.name)} added`);
 }
 

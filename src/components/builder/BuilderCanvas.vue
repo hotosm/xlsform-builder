@@ -8,6 +8,7 @@ import BuilderToolbar from './BuilderToolbar.vue';
 import NodeInspector from './NodeInspector.vue';
 import QuestionPalette from './QuestionPalette.vue';
 import SurveyNodeList from './SurveyNodeList.vue';
+import { findNodeElement } from './domSelectors';
 
 const store = useFormStore();
 const ui = useBuilderUiStore();
@@ -51,7 +52,7 @@ function onDrawerHide(e: Event): void {
 
 function returnFocusToCard(): void {
   if (!store.selectedNodeId) return;
-  document.querySelector<HTMLElement>(`[data-node-id="${store.selectedNodeId}"]`)?.focus();
+  findNodeElement(store.selectedNodeId)?.focus();
 }
 
 function onAnnounce(message: string): void {
