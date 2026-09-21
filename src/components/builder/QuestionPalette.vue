@@ -11,7 +11,8 @@ import { findNode } from '@/utils/tree';
 import { findNodeElement } from './domSelectors';
 import { PALETTE_ITEMS, type PaletteItem, clonePaletteItem, paletteTarget } from './dragHandlers';
 
-const emit = defineEmits<{ announce: [message: string] }>();
+defineProps<{ closable?: boolean }>();
+const emit = defineEmits<{ announce: [message: string]; added: []; close: [] }>();
 
 const store = useFormStore();
 const ui = useBuilderUiStore();
@@ -108,6 +109,7 @@ function addItem(item: PaletteItem): void {
   const node = store.addNode(item.type, parentId, index);
   emit('announce', `${item.label} question added`);
   ui.requestInspector(node.id, false);
+  emit('added');
   void nextTick(() => findNodeElement(node.id)?.scrollIntoView({ block: 'nearest' }));
 }
 </script>
@@ -115,8 +117,13 @@ function addItem(item: PaletteItem): void {
 <template>
   <aside class="question-palette">
     <div class="palette-header">
-      <h3 class="palette-heading">Add Question</h3>
-      <p class="palette-insert-hint">{{ insertHint }}</p>
+      <div class="palette-header-text">
+        <h3 class="palette-heading">Add Question</h3>
+        <p class="palette-insert-hint">{{ insertHint }}</p>
+      </div>
+      <wa-button v-if="closable" appearance="plain" @click="emit('close')">
+        <wa-icon name="xmark" label="Close"></wa-icon>
+      </wa-button>
     </div>
     <wa-input
       v-model="searchQuery"
@@ -195,8 +202,16 @@ function addItem(item: PaletteItem): void {
 
 .palette-header {
   display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+}
+
+.palette-header-text {
+  display: flex;
+  flex: 1;
   flex-direction: column;
   gap: $spacing-xs;
+  min-width: 0;
 }
 
 .palette-heading {

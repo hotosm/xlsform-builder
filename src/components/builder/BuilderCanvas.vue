@@ -9,27 +9,30 @@ import NodeInspector from './NodeInspector.vue';
 import QuestionPalette from './QuestionPalette.vue';
 import SurveyNodeList from './SurveyNodeList.vue';
 import { findNodeElement } from './domSelectors';
+import { WIDE_LAYOUT_QUERY, useMediaQuery } from './useMediaQuery';
 
 const store = useFormStore();
 const ui = useBuilderUiStore();
 
 const announcement = ref('');
 
-const wideQuery = window.matchMedia('(min-width: 900px)');
-const isWide = ref(wideQuery.matches);
+const isWide = useMediaQuery(WIDE_LAYOUT_QUERY);
 const drawerOpen = ref(false);
+const paletteOpen = ref(false);
 const inspector = useTemplateRef('inspector');
 
-function onWideChange(e: MediaQueryListEvent): void {
-  isWide.value = e.matches;
-  if (e.matches) drawerOpen.value = false;
-}
+watch(isWide, (wide) => {
+  if (!wide) return;
+  drawerOpen.value = false;
+  paletteOpen.value = false;
+});
 
 watch(
   () => ui.inspectorRequest,
   async (req) => {
     if (!req) return;
     if (!isWide.value) {
+      paletteOpen.value = false;
       drawerOpen.value = true;
       return;
     }
@@ -48,6 +51,10 @@ watch(
 
 function onDrawerHide(e: Event): void {
   if (e.target === e.currentTarget) drawerOpen.value = false;
+}
+
+function onPaletteHide(e: Event): void {
+  if (e.target === e.currentTarget) paletteOpen.value = false;
 }
 
 function returnFocusToCard(): void {
@@ -96,20 +103,18 @@ function onGlobalKeydown(e: KeyboardEvent): void {
 
 onMounted(() => {
   window.addEventListener('keydown', onGlobalKeydown);
-  wideQuery.addEventListener('change', onWideChange);
 });
 
 onUnmounted(() => {
   window.removeEventListener('keydown', onGlobalKeydown);
-  wideQuery.removeEventListener('change', onWideChange);
 });
 </script>
 
 <template>
   <div class="builder-canvas">
-    <BuilderToolbar />
+    <BuilderToolbar :show-add-question="!isWide" @add-question="paletteOpen = true" />
     <div class="builder-canvas-body">
-      <QuestionPalette @announce="onAnnounce" />
+      <QuestionPalette v-if="isWide" @announce="onAnnounce" />
       <div
         class="builder-canvas-tree"
         tabindex="-1"
@@ -137,6 +142,24 @@ onUnmounted(() => {
       @wa-after-hide="onDrawerHide"
     >
       <NodeInspector ref="inspector" closable @close="drawerOpen = false" />
+    </wa-drawer>
+    <wa-drawer
+      v-if="!isWide"
+      :open="paletteOpen"
+      placement="bottom"
+      light-dismiss
+      without-header
+      class="palette-drawer"
+      label="Add question"
+      @wa-hide="onPaletteHide"
+      @wa-after-hide="onPaletteHide"
+    >
+      <QuestionPalette
+        closable
+        @announce="onAnnounce"
+        @added="paletteOpen = false"
+        @close="paletteOpen = false"
+      />
     </wa-drawer>
     <div class="sr-only" aria-live="polite">{{ announcement }}</div>
   </div>
@@ -187,11 +210,17 @@ onUnmounted(() => {
   }
 }
 
-.inspector-drawer {
-  --size: 75vh;
+.inspector-drawer,
+.palette-drawer {
+  --size: 75dvh;
 
   &::part(body) {
     padding: 0;
   }
+}
+
+.palette-drawer .question-palette {
+  height: 100%;
+  border-right: 0;
 }
 </style>

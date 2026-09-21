@@ -7,6 +7,9 @@ import { friendlyErrorMessage } from '@/utils/errors';
 import { exportToXlsx } from '@/utils/export';
 import { collectNames } from '@/utils/tree';
 
+defineProps<{ showAddQuestion?: boolean }>();
+const emit = defineEmits<{ addQuestion: [] }>();
+
 const store = useFormStore();
 
 const isExporting = ref(false);
@@ -58,6 +61,16 @@ async function handleExport(): Promise<void> {
 
 <template>
   <div class="builder-toolbar">
+    <wa-button
+      v-if="showAddQuestion"
+      variant="brand"
+      size="s"
+      title="Add question"
+      @click="emit('addQuestion')"
+    >
+      <wa-icon slot="start" name="plus" aria-hidden="true"></wa-icon>
+      Add question
+    </wa-button>
     <wa-button
       variant="neutral"
       size="s"

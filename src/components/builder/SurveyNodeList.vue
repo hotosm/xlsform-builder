@@ -89,7 +89,11 @@ function onDragEnd(): void {
       </div>
     </VueDraggable>
     <p v-if="nodes.length === 0" class="empty-drop-hint">
-      {{ isRoot ? 'Drag a question here, or click one in the palette' : 'Drop questions here' }}
+      <template v-if="isRoot">
+        <span class="hint-wide">Drag a question here, or click one in the palette</span>
+        <span class="hint-narrow">Tap + to add your first question</span>
+      </template>
+      <template v-else>Drop questions here</template>
     </p>
   </div>
 </template>
@@ -155,6 +159,21 @@ function onDragEnd(): void {
   margin: 0;
   color: $color-text-secondary;
   font-size: $font-size-small;
+  text-align: center;
   pointer-events: none;
+}
+
+.hint-wide {
+  display: none;
+
+  @include bp(lg) {
+    display: inline;
+  }
+}
+
+.hint-narrow {
+  @include bp(lg) {
+    display: none;
+  }
 }
 </style>
