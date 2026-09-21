@@ -7,6 +7,7 @@ import BuilderToolbar from './BuilderToolbar.vue';
 import NodeInspector from './NodeInspector.vue';
 import QuestionPalette from './QuestionPalette.vue';
 import SurveyNodeList from './SurveyNodeList.vue';
+import { isDragging } from './dragHandlers';
 import { inspectorRequest } from './inspectorRequest';
 
 const store = useFormStore();
@@ -105,7 +106,11 @@ onUnmounted(() => {
     <BuilderToolbar />
     <div class="builder-canvas-body">
       <QuestionPalette @announce="onAnnounce" />
-      <div class="builder-canvas-tree" @click.self="store.selectNode(null)">
+      <div
+        class="builder-canvas-tree"
+        :class="{ 'drag-active': isDragging }"
+        @click.self="store.selectNode(null)"
+      >
         <SurveyNodeList :parent-id="null" :nodes="store.document.survey" @announce="onAnnounce" />
       </div>
       <NodeInspector
@@ -155,6 +160,16 @@ onUnmounted(() => {
   min-width: 0;
   padding: $spacing-md;
   overflow-y: auto;
+  border: 2px dashed transparent;
+  border-radius: $border-radius;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+
+  &.drag-active {
+    border-color: $color-border-light;
+    background: $color-primary-50;
+  }
 }
 
 .inspector-sidebar {

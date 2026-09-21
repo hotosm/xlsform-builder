@@ -11,6 +11,7 @@ import {
   PALETTE_ITEMS,
   type PaletteItem,
   clonePaletteItem,
+  isDragging,
   paletteTarget,
 } from './dragHandlers';
 import { requestInspector } from './inspectorRequest';
@@ -141,8 +142,14 @@ function addItem(item: PaletteItem): void {
           :group="{ name: 'survey-tree', pull: 'clone', put: false }"
           :clone="cloneItem"
           :sort="false"
-          @start="store.beginHistoryBatch()"
-          @end="store.endHistoryBatch()"
+          @start="
+            store.beginHistoryBatch();
+            isDragging = true;
+          "
+          @end="
+            store.endHistoryBatch();
+            isDragging = false;
+          "
         >
           <wa-button
             v-for="item in cat.items"

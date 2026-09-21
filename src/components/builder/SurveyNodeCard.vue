@@ -8,7 +8,7 @@ import { useFormStore } from '@/stores/form';
 
 import { requestInspector } from './inspectorRequest';
 
-const props = defineProps<{ node: SurveyNode }>();
+const props = defineProps<{ node: SurveyNode; level: number }>();
 const emit = defineEmits<{ announce: [message: string] }>();
 
 const store = useFormStore();
@@ -117,6 +117,7 @@ function onKeydown(event: KeyboardEvent): void {
     :class="{ selected }"
     role="treeitem"
     :aria-selected="selected"
+    :aria-level="level"
     :data-node-id="node.id"
     tabindex="0"
     @click.stop="select(false)"
