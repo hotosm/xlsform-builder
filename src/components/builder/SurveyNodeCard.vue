@@ -178,6 +178,15 @@ function onKeydown(event: KeyboardEvent): void {
     <Transition name="controls">
       <div v-if="selected" class="node-controls">
         <wa-button
+          class="node-edit-button"
+          appearance="outlined"
+          size="s"
+          title="Edit question"
+          @click.stop="select(true)"
+        >
+          <wa-icon name="pen" label="Edit question"></wa-icon>
+        </wa-button>
+        <wa-button
           appearance="outlined"
           size="s"
           :disabled="!canMoveUp"
@@ -312,6 +321,12 @@ $node-control-size-touch: 44px;
     wa-button {
       --wa-form-control-height: #{$node-control-size-touch};
     }
+  }
+}
+
+.node-edit-button {
+  @include bp(lg) {
+    display: none;
   }
 }
 

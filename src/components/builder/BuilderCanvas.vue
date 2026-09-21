@@ -30,13 +30,12 @@ watch(isWide, (wide) => {
 watch(
   () => ui.inspectorRequest,
   async (req) => {
-    if (!req) return;
+    if (!req?.focus) return;
     if (!isWide.value) {
       paletteOpen.value = false;
       drawerOpen.value = true;
       return;
     }
-    if (!req.focus) return;
     await nextTick();
     inspector.value?.focusFirstField();
   },
