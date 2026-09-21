@@ -7,10 +7,14 @@ import { friendlyErrorMessage } from '@/utils/errors';
 import { exportToXlsx } from '@/utils/export';
 import { collectNames } from '@/utils/tree';
 
+import { TOOLBAR_LABELS_QUERY, useMediaQuery } from './useMediaQuery';
+
 defineProps<{ showAddQuestion?: boolean }>();
 const emit = defineEmits<{ addQuestion: [] }>();
 
 const store = useFormStore();
+const showLabels = useMediaQuery(TOOLBAR_LABELS_QUERY);
+const iconOnly = computed(() => !showLabels.value);
 
 const isExporting = ref(false);
 const exportError = ref('');
@@ -68,8 +72,11 @@ async function handleExport(): Promise<void> {
       title="Add question"
       @click="emit('addQuestion')"
     >
-      <wa-icon slot="start" name="plus" aria-hidden="true"></wa-icon>
-      Add question
+      <wa-icon v-if="iconOnly" name="plus" label="Add question"></wa-icon>
+      <template v-else>
+        <wa-icon slot="start" name="plus" aria-hidden="true"></wa-icon>
+        Add question
+      </template>
     </wa-button>
     <wa-button
       variant="neutral"
@@ -78,7 +85,11 @@ async function handleExport(): Promise<void> {
       title="Undo (Ctrl/Cmd+Z)"
       @click="store.undo()"
     >
-      Undo
+      <wa-icon v-if="iconOnly" name="arrow-rotate-left" label="Undo"></wa-icon>
+      <template v-else>
+        <wa-icon slot="start" name="arrow-rotate-left" aria-hidden="true"></wa-icon>
+        Undo
+      </template>
     </wa-button>
     <wa-button
       variant="neutral"
@@ -87,7 +98,11 @@ async function handleExport(): Promise<void> {
       title="Redo (Ctrl/Cmd+Shift+Z)"
       @click="store.redo()"
     >
-      Redo
+      <wa-icon v-if="iconOnly" name="arrow-rotate-right" label="Redo"></wa-icon>
+      <template v-else>
+        <wa-icon slot="start" name="arrow-rotate-right" aria-hidden="true"></wa-icon>
+        Redo
+      </template>
     </wa-button>
     <wa-button
       appearance="outlined"
@@ -96,8 +111,11 @@ async function handleExport(): Promise<void> {
       :disabled="questionCount === 0"
       @click="confirmClearOpen = true"
     >
-      <wa-icon slot="start" name="trash" aria-hidden="true"></wa-icon>
-      Clear form
+      <wa-icon v-if="iconOnly" name="trash" label="Clear form"></wa-icon>
+      <template v-else>
+        <wa-icon slot="start" name="trash" aria-hidden="true"></wa-icon>
+        Clear form
+      </template>
     </wa-button>
     <span v-if="savedAtLabel" class="draft-saved">{{ savedAtLabel }}</span>
     <wa-button
