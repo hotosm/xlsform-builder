@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 
 import { useBuilderUiStore } from '@/stores/builderUi';
 import { useFormStore } from '@/stores/form';
@@ -17,7 +17,7 @@ const announcement = ref('');
 const wideQuery = window.matchMedia('(min-width: 900px)');
 const isWide = ref(wideQuery.matches);
 const drawerOpen = ref(false);
-const inspector = ref<InstanceType<typeof NodeInspector> | null>(null);
+const inspector = useTemplateRef('inspector');
 
 function onWideChange(e: MediaQueryListEvent): void {
   isWide.value = e.matches;

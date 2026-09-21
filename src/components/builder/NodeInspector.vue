@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Ref, computed, onBeforeUnmount, ref, watch } from 'vue';
+import { type Ref, computed, onBeforeUnmount, ref, useTemplateRef, watch } from 'vue';
 
 import { PALETTE_LABELS } from '@/constants/paletteItems';
 import { useFormStore } from '@/stores/form';
@@ -217,8 +217,8 @@ const advancedCount = computed(() =>
 
 // --- Focus handoff:
 
-const labelInput = ref<HTMLElement | null>(null);
-const calculationInput = ref<HTMLElement | null>(null);
+const labelInput = useTemplateRef<HTMLElement>('labelInput');
+const calculationInput = useTemplateRef<HTMLElement>('calculationInput');
 
 function focusFirstField(): void {
   (isCalculate.value ? calculationInput.value : labelInput.value)?.focus();
