@@ -281,8 +281,9 @@ $node-control-size-touch: 44px;
   }
 
   &.selected {
-    border-color: $color-primary;
-    background: $color-primary-50;
+    border-color: $color-neutral-700;
+    background: $color-bg-primary;
+    box-shadow: inset 0 0 0 1px $color-neutral-700;
   }
 }
 

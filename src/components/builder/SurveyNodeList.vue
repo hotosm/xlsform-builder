@@ -126,9 +126,9 @@ function onDragEnd(): void {
 }
 
 .survey-node-list :deep(.drop-indicator) {
-  border: 2px dashed $color-primary;
+  border: 2px dashed $color-neutral-400;
   border-radius: $border-radius;
-  background: $color-primary-50;
+  background: $color-bg-surface;
   opacity: 0.6;
 
   > * {

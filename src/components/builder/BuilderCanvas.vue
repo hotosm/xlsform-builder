@@ -195,7 +195,7 @@ onUnmounted(() => {
 
   &.drag-active {
     border-color: $color-border-light;
-    background: $color-primary-50;
+    background: $color-bg-primary;
   }
 }
 
