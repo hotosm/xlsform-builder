@@ -230,6 +230,11 @@ function addItem(item: PaletteItem): void {
   font-size: $font-size-x-small;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  @media (pointer: coarse) {
+    color: $color-text-primary;
+    font-size: $font-size-small;
+  }
 }
 
 .palette-no-results {
@@ -326,5 +331,10 @@ function addItem(item: PaletteItem): void {
   font-weight: $font-weight-normal;
   line-height: 1.3;
   overflow-wrap: anywhere;
+
+  @media (pointer: coarse) {
+    color: $color-text-primary;
+    font-size: $font-size-small;
+  }
 }
 </style>

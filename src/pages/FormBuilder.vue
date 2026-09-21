@@ -124,7 +124,6 @@ onUnmounted(() => {
 
   .subtitle {
     color: $color-text-primary;
-    opacity: 0.7;
     margin: 0;
   }
 }
