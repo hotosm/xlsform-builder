@@ -83,7 +83,7 @@ async function handleExport(): Promise<void> {
       <wa-icon slot="start" name="trash" aria-hidden="true"></wa-icon>
       Clear form
     </wa-button>
-    <span v-if="savedAtLabel" class="draft-saved" role="status">{{ savedAtLabel }}</span>
+    <span v-if="savedAtLabel" class="draft-saved">{{ savedAtLabel }}</span>
     <wa-button
       variant="brand"
       size="s"
