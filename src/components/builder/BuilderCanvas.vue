@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
+import { useBuilderUiStore } from '@/stores/builderUi';
 import { useFormStore } from '@/stores/form';
 
 import BuilderToolbar from './BuilderToolbar.vue';
 import NodeInspector from './NodeInspector.vue';
 import QuestionPalette from './QuestionPalette.vue';
 import SurveyNodeList from './SurveyNodeList.vue';
-import { isDragging } from './dragHandlers';
-import { inspectorRequest } from './inspectorRequest';
 
 const store = useFormStore();
+const ui = useBuilderUiStore();
 
 const announcement = ref('');
 
@@ -24,16 +24,19 @@ function onWideChange(e: MediaQueryListEvent): void {
   if (e.matches) drawerOpen.value = false;
 }
 
-watch(inspectorRequest, async (req) => {
-  if (!req) return;
-  if (!isWide.value) {
-    drawerOpen.value = true;
-    return;
-  }
-  if (!req.focus) return;
-  await nextTick();
-  inspector.value?.focusFirstField();
-});
+watch(
+  () => ui.inspectorRequest,
+  async (req) => {
+    if (!req) return;
+    if (!isWide.value) {
+      drawerOpen.value = true;
+      return;
+    }
+    if (!req.focus) return;
+    await nextTick();
+    inspector.value?.focusFirstField();
+  },
+);
 
 watch(
   () => store.selectedNodeId,
@@ -109,7 +112,7 @@ onUnmounted(() => {
       <div
         class="builder-canvas-tree"
         tabindex="-1"
-        :class="{ 'drag-active': isDragging }"
+        :class="{ 'drag-active': ui.isDragging }"
         @click.self="store.selectNode(null)"
       >
         <SurveyNodeList :parent-id="null" :nodes="store.document.survey" @announce="onAnnounce" />

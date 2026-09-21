@@ -3,13 +3,13 @@ import { computed } from 'vue';
 
 import { type DraggableEvent, VueDraggable } from 'vue-draggable-plus';
 
+import { useBuilderUiStore } from '@/stores/builderUi';
 import { useFormStore } from '@/stores/form';
 import type { SurveyNode } from '@/types/xlsform';
 import { localizedText } from '@/utils/localized';
 
 import SurveyNodeCard from './SurveyNodeCard.vue';
-import { commitDroppedNode, isDragging } from './dragHandlers';
-import { requestInspector } from './inspectorRequest';
+import { commitDroppedNode } from './dragHandlers';
 
 defineOptions({ name: 'SurveyNodeList' });
 
@@ -25,6 +25,7 @@ const props = withDefaults(
 const emit = defineEmits<{ announce: [message: string] }>();
 
 const store = useFormStore();
+const ui = useBuilderUiStore();
 
 const isRoot = computed(() => props.parentId === null);
 
@@ -38,7 +39,7 @@ const model = computed<SurveyNode[]>({
 function onAdd(event: DraggableEvent<SurveyNode>): void {
   const node = event.clonedData ?? event.data;
   commitDroppedNode(store, node);
-  if (event.from.closest('.question-palette')) requestInspector(node.id, true);
+  if (event.from.closest('.question-palette')) ui.requestInspector(node.id, true);
   emit('announce', `${localizedText(node.label, node.name)} added`);
 }
 
@@ -48,12 +49,12 @@ function onAnnounce(message: string): void {
 
 function onDragStart(): void {
   store.beginHistoryBatch();
-  isDragging.value = true;
+  ui.setDragging(true);
 }
 
 function onDragEnd(): void {
   store.endHistoryBatch();
-  isDragging.value = false;
+  ui.setDragging(false);
 }
 </script>
 

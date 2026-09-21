@@ -3,20 +3,15 @@ import { computed, nextTick, ref, watch } from 'vue';
 
 import { VueDraggable } from 'vue-draggable-plus';
 
+import { useBuilderUiStore } from '@/stores/builderUi';
 import { useFormStore } from '@/stores/form';
 import { localizedText } from '@/utils/localized';
 import { findNode } from '@/utils/tree';
 
-import {
-  PALETTE_ITEMS,
-  type PaletteItem,
-  clonePaletteItem,
-  isDragging,
-  paletteTarget,
-} from './dragHandlers';
-import { requestInspector } from './inspectorRequest';
+import { PALETTE_ITEMS, type PaletteItem, clonePaletteItem, paletteTarget } from './dragHandlers';
 
 const store = useFormStore();
+const ui = useBuilderUiStore();
 const emit = defineEmits<{ announce: [message: string] }>();
 
 function cloneItem(item: PaletteItem): ReturnType<typeof clonePaletteItem> {
@@ -89,11 +84,21 @@ const insertHint = computed(() => {
   return `Adds after "${selectedLabel}"`;
 });
 
+function onDragStart(): void {
+  store.beginHistoryBatch();
+  ui.setDragging(true);
+}
+
+function onDragEnd(): void {
+  store.endHistoryBatch();
+  ui.setDragging(false);
+}
+
 function addItem(item: PaletteItem): void {
   const { parentId, index } = paletteTarget(store.document.survey, store.selectedNodeId);
   const node = store.addNode(item.type, parentId, index);
   emit('announce', `${item.label} question added`);
-  requestInspector(node.id, false);
+  ui.requestInspector(node.id, false);
   void nextTick(() => {
     document
       .querySelector<HTMLElement>(`[data-node-id="${node.id}"]`)
@@ -142,14 +147,8 @@ function addItem(item: PaletteItem): void {
           :group="{ name: 'survey-tree', pull: 'clone', put: false }"
           :clone="cloneItem"
           :sort="false"
-          @start="
-            store.beginHistoryBatch();
-            isDragging = true;
-          "
-          @end="
-            store.endHistoryBatch();
-            isDragging = false;
-          "
+          @start="onDragStart"
+          @end="onDragEnd"
         >
           <wa-button
             v-for="item in cat.items"

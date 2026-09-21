@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue';
 
+import { useBuilderUiStore } from '@/stores/builderUi';
 import { useFormStore } from '@/stores/form';
 import type { SurveyNode } from '@/types/xlsform';
 import { localizedText } from '@/utils/localized';
 import { collectNames, findParent } from '@/utils/tree';
 
 import { PALETTE_LABELS } from './dragHandlers';
-import { requestInspector } from './inspectorRequest';
 
 const props = defineProps<{ node: SurveyNode; level: number }>();
 const emit = defineEmits<{ announce: [message: string] }>();
 
 const store = useFormStore();
+const ui = useBuilderUiStore();
 
 const selected = computed(() => store.selectedNodeId === props.node.id);
 
@@ -119,7 +120,7 @@ function confirmDelete(): void {
 
 function select(focusInspector: boolean): void {
   store.selectNode(props.node.id);
-  requestInspector(props.node.id, focusInspector);
+  ui.requestInspector(props.node.id, focusInspector);
 }
 
 function onKeydown(event: KeyboardEvent): void {
