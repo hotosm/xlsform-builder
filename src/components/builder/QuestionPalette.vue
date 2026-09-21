@@ -10,9 +10,10 @@ import { findNode } from '@/utils/tree';
 
 import { PALETTE_ITEMS, type PaletteItem, clonePaletteItem, paletteTarget } from './dragHandlers';
 
+const emit = defineEmits<{ announce: [message: string] }>();
+
 const store = useFormStore();
 const ui = useBuilderUiStore();
-const emit = defineEmits<{ announce: [message: string] }>();
 
 function cloneItem(item: PaletteItem): ReturnType<typeof clonePaletteItem> {
   return clonePaletteItem(item, store.document.survey);

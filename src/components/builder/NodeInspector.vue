@@ -7,7 +7,7 @@ import type { ChoiceList, SurveyNode } from '@/types/xlsform';
 import { localizedText } from '@/utils/localized';
 import { collectNames, countListUsages, findNode } from '@/utils/tree';
 
-withDefaults(defineProps<{ closable?: boolean }>(), { closable: false });
+defineProps<{ closable?: boolean }>();
 const emit = defineEmits<{ close: []; escape: [] }>();
 
 const store = useFormStore();
