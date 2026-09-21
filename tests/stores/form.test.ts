@@ -96,6 +96,40 @@ describe('moveNode', () => {
   });
 });
 
+describe('updateNode listName (choice-list reuse)', () => {
+  it('switches a select node to reference an existing choice list without touching document.choices', () => {
+    const store = useFormStore();
+    const doc = makeSampleDocument();
+    doc.choices.push({ listName: 'yes_no', choices: [{ name: 'yes', label: 'Yes' }, { name: 'no', label: 'No' }] });
+    store.loadDocument(doc);
+
+    const choicesBefore = store.document.choices;
+
+    store.updateNode('q3', { listName: 'yes_no' });
+
+    const q3 = store.document.survey
+      .find((n) => n.id === 'g1')!
+      .children!.find((n) => n.id === 'q3')!;
+    expect(q3.listName).toBe('yes_no');
+    expect(store.document.choices).toEqual(choicesBefore);
+  });
+
+  it('undo restores the prior listName', () => {
+    const store = useFormStore();
+    const doc = makeSampleDocument();
+    doc.choices.push({ listName: 'yes_no', choices: [{ name: 'yes', label: 'Yes' }] });
+    store.loadDocument(doc);
+
+    store.updateNode('q3', { listName: 'yes_no' });
+    store.undo();
+
+    const q3 = store.document.survey
+      .find((n) => n.id === 'g1')!
+      .children!.find((n) => n.id === 'q3')!;
+    expect(q3.listName).toBe('genders');
+  });
+});
+
 describe('removeNode', () => {
   it('clears selection when the removed node itself was selected', () => {
     const store = useFormStore();

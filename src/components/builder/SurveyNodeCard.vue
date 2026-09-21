@@ -6,6 +6,8 @@ import { localizedText } from '@/utils/localized';
 import { findParent } from '@/utils/tree';
 import { useFormStore } from '@/stores/form';
 
+import { requestInspector } from './inspectorRequest';
+
 const props = defineProps<{ node: SurveyNode }>();
 const emit = defineEmits<{ announce: [message: string] }>();
 
@@ -71,7 +73,17 @@ function announceMove(direction: MoveDirection): void {
   );
 }
 
+function select(focusInspector: boolean): void {
+  store.selectNode(props.node.id);
+  requestInspector(props.node.id, focusInspector);
+}
+
 function onKeydown(event: KeyboardEvent): void {
+  if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
+    event.preventDefault();
+    select(event.key === 'Enter');
+    return;
+  }
   if (event.altKey && event.key === 'ArrowUp') {
     event.preventDefault();
     announceMove('up');
@@ -105,8 +117,9 @@ function onKeydown(event: KeyboardEvent): void {
     :class="{ selected }"
     role="treeitem"
     :aria-selected="selected"
+    :data-node-id="node.id"
     tabindex="0"
-    @click.stop="store.selectNode(node.id)"
+    @click.stop="select(false)"
     @keydown="onKeydown"
   >
     <span class="node-drag-handle" aria-hidden="true">⠿</span>
