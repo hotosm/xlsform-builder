@@ -67,7 +67,7 @@ async function handleExport(): Promise<void> {
   <div class="builder-toolbar">
     <wa-button
       v-if="showAddQuestion"
-      variant="danger"
+      variant="neutral"
       size="s"
       title="Add question"
       @click="emit('addQuestion')"
@@ -105,8 +105,8 @@ async function handleExport(): Promise<void> {
       </template>
     </wa-button>
     <wa-button
-      appearance="outlined"
-      variant="danger"
+      appearance="plain"
+      variant="neutral"
       size="s"
       :disabled="questionCount === 0"
       @click="confirmClearOpen = true"
