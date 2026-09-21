@@ -173,7 +173,15 @@ export const useFormStore = defineStore('form', () => {
     }, DRAFT_SAVE_DEBOUNCE_MS);
   }
 
-  watch(document, scheduleDraftSave, { deep: true });
+  watch(
+    [
+      () => document.value.survey,
+      () => document.value.choices,
+      () => document.value.settings,
+      () => document.value.languages,
+    ],
+    scheduleDraftSave,
+  );
 
   const canUndo = computed(() => past.value.length > 0);
   const canRedo = computed(() => future.value.length > 0);

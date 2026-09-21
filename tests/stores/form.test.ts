@@ -1,3 +1,5 @@
+import { nextTick } from 'vue';
+
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -549,6 +551,23 @@ describe('draft persistence', () => {
     expect(
       afterBatchSaved.document.survey.find((n: { id: string }) => n.id === node.id).label,
     ).toBe('Changed mid-drag');
+  });
+
+  it('persists settings changes and undo, which do not go through a history batch', async () => {
+    const store = useFormStore();
+    store.updateSettings({ formTitle: 'Renamed' });
+    await nextTick();
+    vi.advanceTimersByTime(600);
+    expect(JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY)!).document.settings.formTitle).toBe(
+      'Renamed',
+    );
+
+    store.undo();
+    await nextTick();
+    vi.advanceTimersByTime(600);
+    expect(
+      JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY)!).document.settings.formTitle,
+    ).not.toBe('Renamed');
   });
 
   it('restores a persisted draft on store creation', () => {
