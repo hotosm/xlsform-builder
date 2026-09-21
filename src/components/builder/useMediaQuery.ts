@@ -1,7 +1,7 @@
 import { type Ref, onMounted, onUnmounted, ref } from 'vue';
 
 export const WIDE_LAYOUT_QUERY = '(min-width: 900px)';
-export const TOOLBAR_LABELS_QUERY = '(min-width: 600px)';
+export const TOOLBAR_LABELS_QUERY = '(min-width: 900px)';
 
 export function useMediaQuery(queryText: string): Ref<boolean> {
   const query = window.matchMedia(queryText);

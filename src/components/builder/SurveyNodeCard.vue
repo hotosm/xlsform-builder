@@ -262,13 +262,13 @@ $node-control-size-touch: 44px;
   background: $color-bg-card;
   box-shadow: $shadow-light;
   cursor: pointer;
-  min-height: calc(#{$node-control-size} + 2 * #{$spacing-sm} + 2px);
+  min-height: calc(#{$node-control-size-touch} + 2 * #{$spacing-sm} + 2px);
   transition:
     border-color 0.15s ease,
     background-color 0.15s ease;
 
-  @media (max-width: #{$bp-md - 1px}) {
-    min-height: calc(#{$node-control-size-touch} + 2 * #{$spacing-sm} + 2px);
+  @include bp(lg) {
+    min-height: calc(#{$node-control-size} + 2 * #{$spacing-sm} + 2px);
   }
 
   &:hover:not(.selected) {
@@ -322,12 +322,12 @@ $node-control-size-touch: 44px;
   margin-left: auto;
 
   wa-button {
-    --wa-form-control-height: #{$node-control-size};
+    --wa-form-control-height: #{$node-control-size-touch};
   }
 
-  @media (max-width: #{$bp-md - 1px}) {
+  @include bp(lg) {
     wa-button {
-      --wa-form-control-height: #{$node-control-size-touch};
+      --wa-form-control-height: #{$node-control-size};
     }
   }
 }
