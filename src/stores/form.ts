@@ -163,14 +163,25 @@ export const useFormStore = defineStore('form', () => {
   let batchSnapshot: XLSFormDocument | null = null;
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
+  function writeDraft(): void {
+    const savedAt = saveDraft(toRaw(document.value));
+    if (savedAt !== null) lastSavedAt.value = savedAt;
+  }
+
   function scheduleDraftSave(): void {
     if (batchDepth > 0) return;
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       saveTimer = null;
-      const savedAt = saveDraft(toRaw(document.value));
-      if (savedAt !== null) lastSavedAt.value = savedAt;
+      writeDraft();
     }, DRAFT_SAVE_DEBOUNCE_MS);
+  }
+
+  function flushDraftSave(): void {
+    if (!saveTimer) return;
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    writeDraft();
   }
 
   watch(
@@ -439,6 +450,7 @@ export const useFormStore = defineStore('form', () => {
     updateSettings,
     loadDocument,
     clearSurvey,
+    flushDraftSave,
     undo,
     redo,
     canUndo,

@@ -38,18 +38,16 @@ function handleGenerate() {
   void runGeneration();
 }
 
-function onBeforeUnload(e: BeforeUnloadEvent): void {
-  if (store.document.survey.length === 0) return;
-  e.preventDefault();
-  e.returnValue = '';
+function onPageHide(): void {
+  store.flushDraftSave();
 }
 
 onMounted(() => {
-  window.addEventListener('beforeunload', onBeforeUnload);
+  window.addEventListener('pagehide', onPageHide);
 });
 
 onUnmounted(() => {
-  window.removeEventListener('beforeunload', onBeforeUnload);
+  window.removeEventListener('pagehide', onPageHide);
 });
 </script>
 

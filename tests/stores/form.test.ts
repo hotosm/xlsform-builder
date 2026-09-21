@@ -553,6 +553,22 @@ describe('draft persistence', () => {
     ).toBe('Changed mid-drag');
   });
 
+  it('flushDraftSave writes a pending draft immediately', () => {
+    const store = useFormStore();
+    store.addNode('text', null, 0);
+    expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBeNull();
+
+    store.flushDraftSave();
+
+    expect(localStorage.getItem(DRAFT_STORAGE_KEY)).not.toBeNull();
+  });
+
+  it('flushDraftSave does nothing when no save is pending', () => {
+    const store = useFormStore();
+    store.flushDraftSave();
+    expect(localStorage.getItem(DRAFT_STORAGE_KEY)).toBeNull();
+  });
+
   it('persists settings changes and undo, which do not go through a history batch', async () => {
     const store = useFormStore();
     store.updateSettings({ formTitle: 'Renamed' });
