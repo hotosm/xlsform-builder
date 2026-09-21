@@ -288,6 +288,12 @@ $node-control-size-touch: 44px;
   cursor: grab;
   color: $color-text-secondary;
 
+  @media (pointer: coarse) {
+    padding: 14px 12px;
+    margin: -14px -4px -14px -12px;
+    touch-action: none;
+  }
+
   &:active {
     cursor: grabbing;
   }
