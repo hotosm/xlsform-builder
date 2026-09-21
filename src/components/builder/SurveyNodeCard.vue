@@ -255,9 +255,10 @@ $node-control-size-touch: 44px;
   align-items: center;
   gap: $spacing-sm;
   padding: $spacing-sm $spacing-md;
-  border: 1px solid transparent;
+  border: 1px solid $color-border;
   border-radius: $border-radius;
-  background: $color-bg-surface;
+  background: $color-bg-card;
+  box-shadow: $shadow-light;
   cursor: pointer;
   min-height: calc(#{$node-control-size} + 2 * #{$spacing-sm} + 2px);
   transition:
@@ -270,7 +271,6 @@ $node-control-size-touch: 44px;
 
   &:hover:not(.selected) {
     border-color: $color-border-light;
-    background: $color-bg-primary;
   }
 
   &:focus-visible {
