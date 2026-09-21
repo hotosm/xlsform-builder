@@ -284,6 +284,20 @@ function commitHint(): void {
   store.updateNode(node.value.id, { hint: hint.value.trim() || undefined });
 }
 
+function checkboxChecked(event: Event): boolean {
+  return (event.target as HTMLElement & { checked: boolean }).checked;
+}
+
+function onRequiredChange(event: Event): void {
+  required.value = checkboxChecked(event);
+  commitRequired();
+}
+
+function onReadonlyChange(event: Event): void {
+  readonly.value = checkboxChecked(event);
+  commitReadonly();
+}
+
 function commitRequired(): void {
   if (!node.value) return;
   store.updateNode(node.value.id, { required: required.value ? 'true' : undefined });
@@ -446,10 +460,7 @@ function removeChoice(draft: ChoiceDraft): void {
             v-if="supportsRequired"
             :checked="required"
             hint="Respondents can't continue without answering."
-            @change="
-              required = ($event.target as HTMLInputElement).checked;
-              commitRequired();
-            "
+            @change="onRequiredChange"
           >
             Required
           </wa-checkbox>
@@ -643,10 +654,7 @@ function removeChoice(draft: ChoiceDraft): void {
             v-if="supportsReadonly"
             :checked="readonly"
             hint="Shown but can't be edited."
-            @change="
-              readonly = ($event.target as HTMLInputElement).checked;
-              commitReadonly();
-            "
+            @change="onReadonlyChange"
           >
             Read-only
           </wa-checkbox>
