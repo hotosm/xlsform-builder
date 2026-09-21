@@ -256,14 +256,6 @@ function addItem(item: PaletteItem): void {
 .palette-group {
   --spacing: #{$spacing-sm};
 
-  &::part(button) {
-    border-radius: $border-radius;
-    transition: background-color 0.15s ease;
-  }
-
-  &::part(button):hover {
-    background: $color-bg-surface;
-  }
   &::part(content) {
     padding-inline: 0;
   }
@@ -302,10 +294,14 @@ function addItem(item: PaletteItem): void {
     padding: $spacing-sm;
     white-space: normal;
     text-align: left;
+    background: $color-bg-card;
+    border-color: $color-border;
+    color: $color-text-primary;
     cursor: grab;
   }
 
   &::part(button):active {
+    border-color: $color-neutral-700;
     cursor: grabbing;
   }
 
