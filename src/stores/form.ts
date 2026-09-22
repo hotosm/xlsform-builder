@@ -155,6 +155,7 @@ export const useFormStore = defineStore('form', () => {
   const document = ref<XLSFormDocument>(emptyDocument());
   const selectedNodeId = ref<string | null>(null);
   const lastSavedAt = ref<number | null>(null);
+  const draftSaveFailed = ref(false);
 
   const restoredDraft = loadDraft();
   if (restoredDraft) {
@@ -171,6 +172,7 @@ export const useFormStore = defineStore('form', () => {
 
   function writeDraft(): void {
     const savedAt = saveDraft(toRaw(document.value));
+    draftSaveFailed.value = savedAt === null;
     if (savedAt !== null) lastSavedAt.value = savedAt;
   }
 
@@ -440,6 +442,7 @@ export const useFormStore = defineStore('form', () => {
     document,
     selectedNodeId,
     lastSavedAt,
+    draftSaveFailed,
     selectNode,
     addNode,
     moveNode,

@@ -37,6 +37,7 @@ watch(
       drawerOpen.value = true;
       return;
     }
+    if (ui.isCollapsed('inspector')) ui.setCollapsed('inspector', false);
     await nextTick();
     inspector.value?.focusFirstField();
   },
@@ -114,13 +115,13 @@ onUnmounted(() => {
   <div class="builder-canvas">
     <BuilderToolbar :show-add-question="!isWide" @add-question="paletteOpen = true" />
     <div class="builder-canvas-body">
-      <QuestionPalette v-if="isWide" @announce="onAnnounce" />
+      <QuestionPalette v-if="isWide && !ui.isCollapsed('palette')" @announce="onAnnounce" />
       <div class="builder-canvas-tree" tabindex="-1" @click.self="store.selectNode(null)">
         <FormHeader />
         <SurveyNodeList :parent-id="null" :nodes="store.document.survey" @announce="onAnnounce" />
       </div>
       <NodeInspector
-        v-if="isWide"
+        v-if="isWide && !ui.isCollapsed('inspector')"
         ref="inspector"
         class="inspector-sidebar"
         @escape="returnFocusToCard"
@@ -186,6 +187,12 @@ onUnmounted(() => {
   min-width: 0;
   padding: $spacing-md;
   overflow-y: auto;
+
+  > * {
+    width: 100%;
+    max-width: 48rem;
+    margin-inline: auto;
+  }
 }
 
 .inspector-sidebar {
@@ -195,10 +202,6 @@ onUnmounted(() => {
 
   @include bp(xl) {
     width: 20rem;
-  }
-
-  @include bp(xxl) {
-    width: 25rem;
   }
 }
 

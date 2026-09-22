@@ -616,6 +616,29 @@ describe('draft persistence', () => {
     ).not.toBe('Renamed');
   });
 
+  it('flags a failed save and keeps the last successful save time', () => {
+    const store = useFormStore();
+    store.addNode('text', null, 0);
+    vi.advanceTimersByTime(600);
+    const savedAt = store.lastSavedAt;
+    expect(store.draftSaveFailed).toBe(false);
+
+    const setItem = vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError');
+    });
+    store.addNode('integer', null, 1);
+    vi.advanceTimersByTime(600);
+
+    expect(store.draftSaveFailed).toBe(true);
+    expect(store.lastSavedAt).toBe(savedAt);
+
+    setItem.mockRestore();
+    store.addNode('note', null, 2);
+    vi.advanceTimersByTime(600);
+
+    expect(store.draftSaveFailed).toBe(false);
+  });
+
   it('restores a persisted draft on store creation', () => {
     const doc: XLSFormDocument = {
       survey: [{ id: 'q1', type: 'text', name: 'name', label: 'Restored question' }],

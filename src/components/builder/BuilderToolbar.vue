@@ -93,6 +93,17 @@ async function runExport(): Promise<void> {
 <template>
   <div class="builder-toolbar">
     <wa-button
+      v-if="showLabels"
+      variant="neutral"
+      size="s"
+      :class="{ pressed: !ui.isCollapsed('palette') }"
+      @click="ui.setCollapsed('palette', !ui.isCollapsed('palette'))"
+    >
+      <wa-icon slot="start" name="square-plus" aria-hidden="true"></wa-icon>
+      Question types
+      <span class="sr-only">{{ ui.isCollapsed('palette') ? '(hidden)' : '(shown)' }}</span>
+    </wa-button>
+    <wa-button
       v-if="showAddQuestion"
       variant="neutral"
       size="s"
@@ -144,7 +155,16 @@ async function runExport(): Promise<void> {
         Clear form
       </template>
     </wa-button>
-    <span v-if="savedAtLabel" class="draft-saved">{{ savedAtLabel }}</span>
+    <span
+      v-if="store.draftSaveFailed"
+      class="draft-saved draft-save-failed"
+      role="status"
+      title="Changes can't be saved in this browser. Export to keep a copy."
+    >
+      <wa-icon name="triangle-exclamation" aria-hidden="true"></wa-icon>
+      Not saved: browser storage unavailable
+    </span>
+    <span v-else-if="savedAtLabel" class="draft-saved">{{ savedAtLabel }}</span>
     <wa-button
       variant="danger"
       size="s"
@@ -155,6 +175,17 @@ async function runExport(): Promise<void> {
       @click="handleExport"
     >
       Export
+    </wa-button>
+    <wa-button
+      v-if="showLabels"
+      variant="neutral"
+      size="s"
+      :class="{ pressed: !ui.isCollapsed('inspector') }"
+      @click="ui.setCollapsed('inspector', !ui.isCollapsed('inspector'))"
+    >
+      <wa-icon slot="start" name="sliders" aria-hidden="true"></wa-icon>
+      Properties
+      <span class="sr-only">{{ ui.isCollapsed('inspector') ? '(hidden)' : '(shown)' }}</span>
     </wa-button>
     <wa-callout
       v-if="showIssues && issues.length > 0"
@@ -224,6 +255,12 @@ async function runExport(): Promise<void> {
   background: $color-bg-primary;
 }
 
+.pressed::part(button) {
+  border-color: $color-neutral-700;
+  background: $color-bg-card;
+  box-shadow: inset 0 0 0 1px $color-neutral-700;
+}
+
 .export-button {
   margin-left: auto;
 }
@@ -231,6 +268,14 @@ async function runExport(): Promise<void> {
 .draft-saved {
   color: $color-text-secondary;
   font-size: $font-size-small;
+}
+
+.draft-save-failed {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  color: var(--wa-color-warning-on-quiet);
+  font-weight: $font-weight-semibold;
 }
 
 .export-error,

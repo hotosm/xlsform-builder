@@ -93,7 +93,10 @@ function onDragEnd(): void {
     </VueDraggable>
     <p v-if="nodes.length === 0" class="empty-drop-hint">
       <template v-if="isRoot">
-        <span class="hint-wide">Drag a question here, or click one in the palette</span>
+        <span v-if="ui.isCollapsed('palette')" class="hint-wide">
+          Open Question types in the toolbar to add your first question
+        </span>
+        <span v-else class="hint-wide">Drag a question here, or click one in the palette</span>
         <span class="hint-narrow">Tap + to add your first question</span>
       </template>
       <template v-else>Drop questions here</template>
