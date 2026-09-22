@@ -60,7 +60,10 @@ function onDragEnd(): void {
 </script>
 
 <template>
-  <div class="survey-node-list-wrapper" :class="{ 'root-fill': isRoot }">
+  <div
+    class="survey-node-list-wrapper"
+    :class="{ 'root-fill': isRoot, 'drag-active': isRoot && ui.isDragging && nodes.length > 0 }"
+  >
     <VueDraggable
       v-model="model"
       class="survey-node-list"
@@ -107,6 +110,19 @@ function onDragEnd(): void {
   display: flex;
   flex: 1 0 auto;
   flex-direction: column;
+  border-radius: $border-radius;
+  outline: 2px dashed transparent;
+  outline-offset: $spacing-xs;
+  transition:
+    outline-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &.drag-active {
+    outline-color: $color-border-light;
+    background: $color-bg-primary;
+    box-shadow: 0 0 0 $spacing-xs $color-bg-primary;
+  }
 }
 
 .survey-node-list {

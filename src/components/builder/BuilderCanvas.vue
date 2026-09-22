@@ -115,12 +115,7 @@ onUnmounted(() => {
     <BuilderToolbar :show-add-question="!isWide" @add-question="paletteOpen = true" />
     <div class="builder-canvas-body">
       <QuestionPalette v-if="isWide" @announce="onAnnounce" />
-      <div
-        class="builder-canvas-tree"
-        tabindex="-1"
-        :class="{ 'drag-active': ui.isDragging }"
-        @click.self="store.selectNode(null)"
-      >
+      <div class="builder-canvas-tree" tabindex="-1" @click.self="store.selectNode(null)">
         <FormHeader />
         <SurveyNodeList :parent-id="null" :nodes="store.document.survey" @announce="onAnnounce" />
       </div>
@@ -191,16 +186,6 @@ onUnmounted(() => {
   min-width: 0;
   padding: $spacing-md;
   overflow-y: auto;
-  border: 2px dashed transparent;
-  border-radius: $border-radius;
-  transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease;
-
-  &.drag-active {
-    border-color: $color-border-light;
-    background: $color-bg-primary;
-  }
 }
 
 .inspector-sidebar {
