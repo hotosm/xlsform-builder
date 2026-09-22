@@ -164,6 +164,36 @@ describe('removeNode', () => {
   });
 });
 
+describe('form ID', () => {
+  it('is derived from the title when the title changes', () => {
+    const store = useFormStore();
+
+    store.updateSettings({ formTitle: 'Market Price Check' });
+
+    expect(store.document.settings.formId).toBe('market_price_check');
+  });
+
+  it('ignores a form ID passed without a title change', () => {
+    const store = useFormStore();
+    store.updateSettings({ formTitle: 'Market Price Check' });
+
+    store.updateSettings({ formId: 'something_else' });
+
+    expect(store.document.settings.formId).toBe('market_price_check');
+  });
+
+  it('is normalized from the title when a document is loaded', () => {
+    const store = useFormStore();
+
+    store.loadDocument({
+      ...makeSampleDocument(),
+      settings: { formTitle: 'Flood Survey 2026', formId: 'fs_v2' },
+    });
+
+    expect(store.document.settings.formId).toBe('flood_survey_2026');
+  });
+});
+
 describe('clearSurvey', () => {
   it('removes all questions and choice lists but keeps settings', () => {
     const store = useFormStore();

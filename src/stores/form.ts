@@ -10,6 +10,7 @@ import type {
   XLSFormDocument,
   XLSFormType,
 } from '@/types/xlsform';
+import { formIdFromTitle } from '@/utils/fileUtils';
 import {
   findNode,
   findParent,
@@ -61,6 +62,10 @@ const DRAFT_SAVE_DEBOUNCE_MS = 600;
 interface DraftEnvelope {
   savedAt: number;
   document: XLSFormDocument;
+}
+
+function withDerivedFormId(settings: FormSettings): FormSettings {
+  return { ...settings, formId: formIdFromTitle(settings.formTitle) };
 }
 
 function hasLocalStorage(): boolean {
@@ -154,6 +159,7 @@ export const useFormStore = defineStore('form', () => {
   const restoredDraft = loadDraft();
   if (restoredDraft) {
     document.value = restoredDraft.document;
+    document.value.settings = withDerivedFormId(document.value.settings);
     lastSavedAt.value = restoredDraft.savedAt;
   }
 
@@ -409,7 +415,7 @@ export const useFormStore = defineStore('form', () => {
 
   function updateSettings(patch: Partial<FormSettings>): void {
     pushHistory();
-    document.value.settings = { ...toRaw(document.value).settings, ...patch };
+    document.value.settings = withDerivedFormId({ ...toRaw(document.value).settings, ...patch });
   }
 
   function clearSurvey(): void {
@@ -422,6 +428,7 @@ export const useFormStore = defineStore('form', () => {
 
   function loadDocument(doc: XLSFormDocument): void {
     document.value = snapshot(doc);
+    document.value.settings = withDerivedFormId(document.value.settings);
     selectedNodeId.value = null;
     past.value = [];
     future.value = [];

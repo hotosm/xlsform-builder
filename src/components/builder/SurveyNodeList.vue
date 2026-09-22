@@ -105,8 +105,8 @@ function onDragEnd(): void {
 
 .survey-node-list-wrapper.root-fill {
   display: flex;
+  flex: 1 0 auto;
   flex-direction: column;
-  min-height: 100%;
 }
 
 .survey-node-list {

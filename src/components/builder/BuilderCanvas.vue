@@ -5,6 +5,7 @@ import { useBuilderUiStore } from '@/stores/builderUi';
 import { useFormStore } from '@/stores/form';
 
 import BuilderToolbar from './BuilderToolbar.vue';
+import FormHeader from './FormHeader.vue';
 import NodeInspector from './NodeInspector.vue';
 import QuestionPalette from './QuestionPalette.vue';
 import SurveyNodeList from './SurveyNodeList.vue';
@@ -120,6 +121,7 @@ onUnmounted(() => {
         :class="{ 'drag-active': ui.isDragging }"
         @click.self="store.selectNode(null)"
       >
+        <FormHeader />
         <SurveyNodeList :parent-id="null" :nodes="store.document.survey" @announce="onAnnounce" />
       </div>
       <NodeInspector
@@ -183,6 +185,8 @@ onUnmounted(() => {
 }
 
 .builder-canvas-tree {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-width: 0;
   padding: $spacing-md;
