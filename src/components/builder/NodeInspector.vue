@@ -4,6 +4,7 @@ import { type Ref, computed, onBeforeUnmount, ref, useTemplateRef, watch } from 
 import { PALETTE_LABELS } from '@/constants/paletteItems';
 import { useFormStore } from '@/stores/form';
 import type { ChoiceList, SurveyNode } from '@/types/xlsform';
+import { formatRefs, unknownRefs } from '@/utils/formIssues';
 import { localizedText } from '@/utils/localized';
 import { collectNames, countListUsages, findNode } from '@/utils/tree';
 
@@ -148,24 +149,12 @@ watch(currentList, seedChoices, { immediate: true });
 
 // --- ${name} reference checking:
 
-const REF_PATTERN = /\$\{([^}]+)\}/g;
-
 const knownNames = computed(() => new Set(collectNames(store.document.survey)));
 
-function unknownRefs(expression: string): string[] {
-  const missing = new Set<string>();
-  for (const match of expression.matchAll(REF_PATTERN)) {
-    const ref = match[1].trim();
-    if (!knownNames.value.has(ref)) missing.add(ref);
-  }
-  return [...missing];
-}
-
 function unknownRefsMessage(expression: string): string {
-  const missing = unknownRefs(expression);
+  const missing = unknownRefs(expression, knownNames.value);
   if (missing.length === 0) return '';
-  const list = missing.map((m) => `\${${m}}`).join(', ');
-  return `No question named ${list}.`;
+  return `No question named ${formatRefs(missing)}.`;
 }
 
 const calculationWarning = computed(() => unknownRefsMessage(calculation.value));

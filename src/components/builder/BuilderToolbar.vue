@@ -2,23 +2,30 @@
 import { computed, nextTick, ref } from 'vue';
 
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import { useBuilderUiStore } from '@/stores/builderUi';
 import { useFormStore } from '@/stores/form';
 import { friendlyErrorMessage } from '@/utils/errors';
 import { exportToXlsx } from '@/utils/export';
+import { type FormIssue, findFormIssues } from '@/utils/formIssues';
 import { collectNames } from '@/utils/tree';
 
+import { findNodeElement } from './domSelectors';
 import { WIDE_LAYOUT_QUERY, useMediaQuery } from './useMediaQuery';
 
 defineProps<{ showAddQuestion?: boolean }>();
 const emit = defineEmits<{ addQuestion: [] }>();
 
 const store = useFormStore();
+const ui = useBuilderUiStore();
 const showLabels = useMediaQuery(WIDE_LAYOUT_QUERY);
 const iconOnly = computed(() => !showLabels.value);
 
 const isExporting = ref(false);
 const exportError = ref('');
 const confirmClearOpen = ref(false);
+const showIssues = ref(false);
+
+const issues = computed(() => findFormIssues(store.document));
 
 const questionCount = computed(() => collectNames(store.document.survey).length);
 
@@ -37,8 +44,28 @@ async function waitForPaint(): Promise<void> {
   await new Promise<void>((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
 }
 
-async function handleExport(): Promise<void> {
+function handleExport(): void {
+  if (issues.value.length > 0) {
+    showIssues.value = true;
+    return;
+  }
+  void runExport();
+}
+
+function exportAnyway(): void {
+  showIssues.value = false;
+  void runExport();
+}
+
+function goToIssue(issue: FormIssue): void {
+  store.selectNode(issue.nodeId);
+  ui.requestInspector(issue.nodeId, true);
+  findNodeElement(issue.nodeId)?.scrollIntoView({ block: 'nearest' });
+}
+
+async function runExport(): Promise<void> {
   if (isExporting.value) return;
+  showIssues.value = false;
   isExporting.value = true;
   exportError.value = '';
   try {
@@ -122,11 +149,46 @@ async function handleExport(): Promise<void> {
       variant="danger"
       size="s"
       class="export-button"
+      :disabled="questionCount === 0"
+      :title="questionCount === 0 ? 'Add a question to export' : undefined"
       :loading="isExporting"
       @click="handleExport"
     >
       Export
     </wa-button>
+    <wa-callout
+      v-if="showIssues && issues.length > 0"
+      class="export-issues"
+      variant="warning"
+      size="s"
+      role="alert"
+    >
+      <wa-icon slot="icon" name="triangle-exclamation" aria-hidden="true"></wa-icon>
+      <div class="export-issues-body">
+        <p class="export-issues-title">
+          {{ issues.length }} problem{{ issues.length === 1 ? '' : 's' }} may stop this form from
+          working in ODK or KoboToolbox.
+        </p>
+        <div class="export-issues-list">
+          <wa-button
+            v-for="(issue, i) in issues"
+            :key="`${issue.nodeId}-${i}`"
+            class="export-issue"
+            appearance="plain"
+            variant="neutral"
+            size="s"
+            @click="goToIssue(issue)"
+          >
+            <span class="export-issue-label">{{ issue.nodeLabel }}</span>
+            {{ issue.message }}
+          </wa-button>
+        </div>
+        <div class="export-issues-actions">
+          <wa-button appearance="outlined" size="s" @click="exportAnyway">Export anyway</wa-button>
+          <wa-button appearance="plain" size="s" @click="showIssues = false">Dismiss</wa-button>
+        </div>
+      </div>
+    </wa-callout>
     <wa-callout v-if="exportError" class="export-error" variant="danger" size="s" role="alert">
       <wa-icon slot="icon" name="circle-exclamation" aria-hidden="true"></wa-icon>
       <div class="export-error-body">
@@ -171,8 +233,50 @@ async function handleExport(): Promise<void> {
   font-size: $font-size-small;
 }
 
-.export-error {
+.export-error,
+.export-issues {
   flex-basis: 100%;
+}
+
+.export-issues-body {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  font-size: $font-size-small;
+}
+
+.export-issues-title {
+  margin: 0;
+  font-weight: $font-weight-semibold;
+}
+
+.export-issues-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 8rem;
+  overflow-y: auto;
+}
+
+.export-issue::part(button) {
+  justify-content: flex-start;
+  height: auto;
+  padding: $spacing-xs 0;
+  white-space: normal;
+  text-align: left;
+}
+
+.export-issue-label {
+  font-weight: $font-weight-semibold;
+  text-decoration: underline;
+
+  &::after {
+    content: ':';
+  }
+}
+
+.export-issues-actions {
+  display: flex;
+  gap: $spacing-sm;
 }
 
 .export-error-body {
