@@ -65,6 +65,7 @@ interface ChoiceDraft {
 }
 
 const choiceDrafts = ref<ChoiceDraft[]>([]);
+const choiceErrors = ref(new Map<string, string>());
 
 const FIELDS: [Ref<string> | Ref<boolean>, (n: SurveyNode) => string | boolean][] = [
   [name, (n) => n.name],
@@ -103,18 +104,31 @@ const currentList = computed(() => {
   return listName ? store.document.choices.find((c) => c.listName === listName) : undefined;
 });
 
-function seedChoices(list: ChoiceList | undefined): void {
+function seedChoices(list: ChoiceList | undefined, previous?: ChoiceList): void {
   // Reuse row ids across reseeds so v-for keeps each wa-input bound to its choice.
   const previousIds = new Map<string, string[]>();
   for (const d of choiceDrafts.value) {
     previousIds.set(d.originalName, [...(previousIds.get(d.originalName) ?? []), d.id]);
   }
-  choiceDrafts.value = (list?.choices ?? []).map((c) => ({
-    id: previousIds.get(c.name)?.shift() ?? crypto.randomUUID(),
-    originalName: c.name,
-    name: c.name,
-    label: localizedText(c.label, c.name),
-  }));
+  const sameList = !!list && list.listName === previous?.listName;
+  const pendingNames = new Map(
+    sameList
+      ? choiceDrafts.value.filter((d) => choiceErrors.value.has(d.id)).map((d) => [d.id, d.name])
+      : [],
+  );
+  const errors = new Map(sameList ? choiceErrors.value : []);
+  choiceErrors.value.clear();
+  choiceDrafts.value = (list?.choices ?? []).map((c) => {
+    const id = previousIds.get(c.name)?.shift() ?? crypto.randomUUID();
+    const pending = pendingNames.get(id);
+    if (pending !== undefined) choiceErrors.value.set(id, errors.get(id) ?? '');
+    return {
+      id,
+      originalName: c.name,
+      name: pending ?? c.name,
+      label: localizedText(c.label, c.name),
+    };
+  });
 }
 
 const availableLists = computed(() => store.document.choices.map((c) => c.listName));
@@ -372,11 +386,22 @@ function commitListName(): void {
 
 function commitChoice(draft: ChoiceDraft): void {
   if (!node.value?.listName) return;
+  const trimmed = draft.name.trim() || draft.originalName;
+  const duplicate = choiceDrafts.value.some((d) => d !== draft && d.originalName === trimmed);
+  if (duplicate) {
+    choiceErrors.value.set(draft.id, `Another choice already uses the value "${trimmed}".`);
+    const stored = currentList.value?.choices.find((c) => c.name === draft.originalName);
+    if (stored && localizedText(stored.label, stored.name) !== draft.label) {
+      store.updateChoice(node.value.listName, draft.originalName, { label: draft.label });
+    }
+    return;
+  }
+  choiceErrors.value.delete(draft.id);
   store.updateChoice(node.value.listName, draft.originalName, {
-    name: draft.name.trim() || draft.originalName,
+    name: trimmed,
     label: draft.label,
   });
-  draft.originalName = draft.name.trim() || draft.originalName;
+  draft.originalName = trimmed;
 }
 
 function addChoice(): void {
@@ -488,8 +513,8 @@ function removeChoice(draft: ChoiceDraft): void {
               Create new list
             </wa-option>
             <span v-if="listUsageCount > 0" slot="hint">
-              Shared with {{ listUsageCount }} other question{{ listUsageCount === 1 ? '' : 's' }} —
-              edits apply to all.
+              Shared with {{ listUsageCount }} other question{{ listUsageCount === 1 ? '' : 's' }}.
+              Edits apply to all.
             </span>
           </wa-select>
 
@@ -499,31 +524,37 @@ function removeChoice(draft: ChoiceDraft): void {
               <span>Saved value</span>
               <span></span>
             </div>
-            <div v-for="(draft, i) in choiceDrafts" :key="draft.id" class="choice-row">
-              <wa-input
-                v-model="draft.label"
-                size="s"
-                :aria-label="`Choice ${i + 1} label`"
-                @change="commitChoice(draft)"
-              ></wa-input>
-              <wa-input
-                v-model="draft.name"
-                size="s"
-                :aria-label="`Choice ${i + 1} saved value`"
-                @change="commitChoice(draft)"
-              ></wa-input>
-              <wa-button
-                appearance="plain"
-                size="s"
-                title="Remove choice"
-                @click="removeChoice(draft)"
-              >
-                <wa-icon
-                  name="xmark"
-                  :label="`Remove choice ${draft.label || draft.name}`"
-                ></wa-icon>
-              </wa-button>
-            </div>
+            <template v-for="(draft, i) in choiceDrafts" :key="draft.id">
+              <div class="choice-row">
+                <wa-input
+                  v-model="draft.label"
+                  size="s"
+                  :aria-label="`Choice ${i + 1} label`"
+                  @change="commitChoice(draft)"
+                ></wa-input>
+                <wa-input
+                  v-model="draft.name"
+                  size="s"
+                  :aria-label="`Choice ${i + 1} saved value`"
+                  :aria-invalid="choiceErrors.has(draft.id)"
+                  @change="commitChoice(draft)"
+                ></wa-input>
+                <wa-button
+                  appearance="plain"
+                  size="s"
+                  title="Remove choice"
+                  @click="removeChoice(draft)"
+                >
+                  <wa-icon
+                    name="xmark"
+                    :label="`Remove choice ${draft.label || draft.name}`"
+                  ></wa-icon>
+                </wa-button>
+              </div>
+              <p v-if="choiceErrors.has(draft.id)" class="field-error choice-error" role="alert">
+                {{ choiceErrors.get(draft.id) }}
+              </p>
+            </template>
           </div>
           <wa-button class="add-choice" appearance="outlined" size="s" @click="addChoice">
             <wa-icon slot="start" name="plus" aria-hidden="true"></wa-icon>
@@ -784,6 +815,11 @@ function removeChoice(draft: ChoiceDraft): void {
   span:last-child {
     width: var(--wa-form-control-height-s, 2rem);
   }
+}
+
+.choice-error {
+  margin: 0;
+  font-size: $font-size-small;
 }
 
 .add-choice {
