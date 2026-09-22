@@ -133,7 +133,10 @@ function onKeydown(event: KeyboardEvent): void {
     announceMove('out');
     return;
   }
-  if (event.key === 'Delete' || event.key === 'Backspace') {
+  if (
+    event.target === event.currentTarget &&
+    (event.key === 'Delete' || event.key === 'Backspace')
+  ) {
     event.preventDefault();
     onDelete();
   }
