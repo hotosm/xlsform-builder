@@ -4,6 +4,9 @@ import type { ChoiceList, FormSettings, XLSFormDocument } from '@/types/xlsform'
 
 import { COLUMN_MAP, type SurveyRow, expandLocalized, flattenTree } from './tree';
 
+const MIN_COLUMN_WIDTH = 8;
+const MAX_COLUMN_WIDTH = 60;
+
 export function flattenChoices(choices: ChoiceList[], languages: string[]): SurveyRow[] {
   const rows: SurveyRow[] = [];
 
@@ -61,7 +64,15 @@ export function rowsToSheet(rows: SurveyRow[]): XLSX.WorkSheet {
     data.push(headers.map((h) => row[h]));
   }
 
-  return XLSX.utils.aoa_to_sheet(data);
+  const sheet = XLSX.utils.aoa_to_sheet(data);
+  sheet['!cols'] = headers.map((_, col) => ({
+    wch: Math.min(
+      MAX_COLUMN_WIDTH,
+      Math.max(MIN_COLUMN_WIDTH, ...data.map((row) => row[col]?.length ?? 0)) + 2,
+    ),
+  }));
+
+  return sheet;
 }
 
 export function exportToXlsx(doc: XLSFormDocument): Uint8Array {

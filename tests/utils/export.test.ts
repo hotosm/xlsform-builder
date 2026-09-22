@@ -147,6 +147,15 @@ describe('rowsToSheet', () => {
     expect(data[1]['required']).toBe('yes');
   });
 
+  it('sizes columns to their longest value within bounds', () => {
+    const rows: SurveyRow[] = [
+      { type: 'text', name: 'q1', label: 'What is the name of the health facility?' },
+      { type: 'text', name: 'q2', label: 'x'.repeat(200) },
+    ];
+    const sheet = rowsToSheet(rows);
+    expect(sheet['!cols']).toEqual([{ wch: 10 }, { wch: 10 }, { wch: 60 }]);
+  });
+
   it('returns an empty sheet for empty input', () => {
     const sheet = rowsToSheet([]);
     const data = XLSX.utils.sheet_to_json(sheet);

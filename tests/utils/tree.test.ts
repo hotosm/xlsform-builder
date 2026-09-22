@@ -1,14 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
 import type { SurveyNode } from '@/types/xlsform';
-
 import {
   COLUMN_MAP,
+  collectNames,
+  countListUsages,
   findNode,
   findParent,
   flattenTree,
   insertNode,
   moveNode,
+  nextAvailableName,
   removeNode,
   updateNode,
 } from '@/utils/tree';
@@ -526,5 +528,64 @@ describe('COLUMN_MAP', () => {
     expect(COLUMN_MAP['readonly']).toBe('read_only');
     expect(COLUMN_MAP['mediaImage']).toBe('media::image');
     expect(COLUMN_MAP['mediaAudio']).toBe('media::audio');
+  });
+});
+
+describe('collectNames', () => {
+  it('collects names from every level of the tree', () => {
+    const tree = makeSampleTree();
+    expect(collectNames(tree).sort()).toEqual(
+      ['age', 'demographics', 'gender', 'name', 'notes'].sort(),
+    );
+  });
+
+  it('excludes the given id', () => {
+    const tree = makeSampleTree();
+    expect(collectNames(tree, 'q1')).not.toContain('name');
+  });
+});
+
+describe('countListUsages', () => {
+  it('returns 0 when no node references the list', () => {
+    const tree = makeSampleTree();
+    expect(countListUsages(tree, 'nonexistent')).toBe(0);
+  });
+
+  it('counts a single match nested inside a group', () => {
+    const tree = makeSampleTree();
+    expect(countListUsages(tree, 'genders')).toBe(1);
+  });
+
+  it('counts multiple nodes sharing the same list across different levels', () => {
+    const tree = [
+      makeNode({ id: 'a', name: 'a', type: 'select_one', listName: 'shared' }),
+      makeNode({
+        id: 'g1',
+        name: 'g',
+        type: 'group',
+        children: [makeNode({ id: 'b', name: 'b', type: 'select_multiple', listName: 'shared' })],
+      }),
+    ];
+    expect(countListUsages(tree, 'shared')).toBe(2);
+  });
+});
+
+describe('nextAvailableName', () => {
+  it('returns base_1 when the base name is unused', () => {
+    const tree = makeSampleTree();
+    expect(nextAvailableName(tree, 'text')).toBe('text_1');
+  });
+
+  it('skips taken numbers and returns the first free one', () => {
+    const tree = [
+      makeNode({ id: 'a', name: 'text_1' }),
+      makeNode({ id: 'b', name: 'text_2' }),
+    ];
+    expect(nextAvailableName(tree, 'text')).toBe('text_3');
+  });
+
+  it('does not collide with a nested node using the same base', () => {
+    const tree = makeSampleTree();
+    expect(nextAvailableName(tree, 'age')).toBe('age_1');
   });
 });

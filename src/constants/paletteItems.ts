@@ -1,0 +1,205 @@
+import type { XLSFormType } from '@/types/xlsform';
+
+export interface PaletteItem {
+  type: XLSFormType;
+  label: string;
+  category: string;
+  description: string;
+  icon: string;
+  keywords?: string[];
+}
+
+export const PALETTE_ITEMS: PaletteItem[] = [
+  {
+    type: 'group',
+    icon: 'folder-open',
+    label: 'Group',
+    category: 'Structure',
+    description: 'Section that holds related questions',
+    keywords: ['section', 'page', 'container'],
+  },
+  {
+    type: 'repeat',
+    icon: 'repeat',
+    label: 'Repeat',
+    category: 'Structure',
+    description: 'Questions asked once per item, e.g. per household member',
+    keywords: ['loop', 'roster', 'list'],
+  },
+  {
+    type: 'text',
+    icon: 'font',
+    label: 'Text',
+    category: 'Text & Numbers',
+    description: 'Free-form typed answer',
+    keywords: ['string', 'words', 'open', 'comment'],
+  },
+  {
+    type: 'integer',
+    icon: 'hashtag',
+    label: 'Integer',
+    category: 'Text & Numbers',
+    description: 'Whole number, e.g. 3',
+    keywords: ['number', 'count', 'whole'],
+  },
+  {
+    type: 'decimal',
+    icon: 'ruler',
+    label: 'Decimal',
+    category: 'Text & Numbers',
+    description: 'Number with decimals, e.g. 2.5',
+    keywords: ['number', 'float', 'measurement'],
+  },
+  {
+    type: 'note',
+    icon: 'note-sticky',
+    label: 'Note',
+    category: 'Text & Numbers',
+    description: 'Read-only message shown to the enumerator',
+    keywords: ['message', 'instruction', 'info', 'display'],
+  },
+  {
+    type: 'select_one',
+    icon: 'circle-dot',
+    label: 'Select One',
+    category: 'Choice',
+    description: 'Pick a single option from a list',
+    keywords: ['single choice', 'radio', 'dropdown', 'yes no', 'select_one'],
+  },
+  {
+    type: 'select_multiple',
+    icon: 'square-check',
+    label: 'Select Multiple',
+    category: 'Choice',
+    description: 'Pick one or more options from a list',
+    keywords: ['multiple choice', 'checkbox', 'select_multiple'],
+  },
+  {
+    type: 'geopoint',
+    icon: 'location-dot',
+    label: 'Geopoint',
+    category: 'Location',
+    description: 'Single GPS point',
+    keywords: ['gps', 'coordinates', 'location', 'map', 'point'],
+  },
+  {
+    type: 'geotrace',
+    icon: 'route',
+    label: 'Geotrace',
+    category: 'Location',
+    description: 'Line drawn on a map, e.g. a road',
+    keywords: ['gps', 'line', 'path', 'map', 'road'],
+  },
+  {
+    type: 'geoshape',
+    icon: 'draw-polygon',
+    label: 'Geoshape',
+    category: 'Location',
+    description: 'Area drawn on a map, e.g. a building footprint',
+    keywords: ['gps', 'polygon', 'area', 'map', 'boundary'],
+  },
+  {
+    type: 'date',
+    icon: 'calendar',
+    label: 'Date',
+    category: 'Date & Time',
+    description: 'Calendar date',
+    keywords: ['day', 'calendar'],
+  },
+  {
+    type: 'time',
+    icon: 'clock',
+    label: 'Time',
+    category: 'Date & Time',
+    description: 'Time of day',
+    keywords: ['clock', 'hour'],
+  },
+  {
+    type: 'dateTime',
+    icon: 'calendar-day',
+    label: 'Date & Time',
+    category: 'Date & Time',
+    description: 'Date and time of day together',
+    keywords: ['datetime', 'timestamp'],
+  },
+  {
+    type: 'image',
+    icon: 'image',
+    label: 'Image',
+    category: 'Media',
+    description: 'Take or attach a photo',
+    keywords: ['photo', 'picture', 'camera'],
+  },
+  {
+    type: 'audio',
+    icon: 'microphone',
+    label: 'Audio',
+    category: 'Media',
+    description: 'Record or attach a sound clip',
+    keywords: ['sound', 'recording', 'voice'],
+  },
+  {
+    type: 'video',
+    icon: 'video',
+    label: 'Video',
+    category: 'Media',
+    description: 'Record or attach a video',
+    keywords: ['movie', 'camera', 'clip'],
+  },
+  {
+    type: 'file',
+    icon: 'paperclip',
+    label: 'File',
+    category: 'Media',
+    description: 'Attach any file',
+    keywords: ['attachment', 'upload', 'document'],
+  },
+  {
+    type: 'barcode',
+    icon: 'barcode',
+    label: 'Barcode',
+    category: 'Other',
+    description: 'Scan a barcode or QR code',
+    keywords: ['qr', 'scan'],
+  },
+  {
+    type: 'calculate',
+    icon: 'calculator',
+    label: 'Calculate',
+    category: 'Other',
+    description: 'Hidden value computed from other answers',
+    keywords: ['formula', 'expression', 'hidden', 'computed'],
+  },
+  {
+    type: 'acknowledge',
+    icon: 'circle-check',
+    label: 'Acknowledge',
+    category: 'Other',
+    description: 'Single checkbox to confirm, e.g. consent',
+    keywords: ['consent', 'agree', 'confirm', 'ok'],
+  },
+  {
+    type: 'range',
+    icon: 'sliders',
+    label: 'Range',
+    category: 'Other',
+    description: 'Number picked on a slider',
+    keywords: ['slider', 'scale', 'rating'],
+  },
+  {
+    type: 'rank',
+    icon: 'list-ol',
+    label: 'Rank',
+    category: 'Other',
+    description: 'Order a list of options by preference',
+    keywords: ['order', 'priority', 'sort'],
+  },
+];
+
+export const PALETTE_LABELS: Partial<Record<XLSFormType, string>> = Object.fromEntries(
+  PALETTE_ITEMS.map((item) => [item.type, item.label]),
+);
+
+export const PALETTE_ICONS: Partial<Record<XLSFormType, string>> = Object.fromEntries(
+  PALETTE_ITEMS.map((item) => [item.type, item.icon]),
+);

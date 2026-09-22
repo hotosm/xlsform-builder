@@ -15,6 +15,31 @@ export const COLUMN_MAP: Record<string, string> = {
   defaultLanguage: 'default_language',
 };
 
+export function collectNames(tree: SurveyNode[], excludeId?: string): string[] {
+  const names: string[] = [];
+  for (const node of tree) {
+    if (node.id !== excludeId) names.push(node.name);
+    if (node.children) names.push(...collectNames(node.children, excludeId));
+  }
+  return names;
+}
+
+export function countListUsages(tree: SurveyNode[], listName: string): number {
+  let count = 0;
+  for (const node of tree) {
+    if (node.listName === listName) count++;
+    if (node.children) count += countListUsages(node.children, listName);
+  }
+  return count;
+}
+
+export function nextAvailableName(tree: SurveyNode[], base: string): string {
+  const existing = new Set(collectNames(tree));
+  let n = 1;
+  while (existing.has(`${base}_${n}`)) n++;
+  return `${base}_${n}`;
+}
+
 export function findNode(tree: SurveyNode[], id: string): SurveyNode | null {
   for (const node of tree) {
     if (node.id === id) {
@@ -180,11 +205,7 @@ export function expandLocalized(
   return result;
 }
 
-const LOCALIZABLE_FIELDS = new Set([
-  'label',
-  'hint',
-  'constraintMessage',
-]);
+const LOCALIZABLE_FIELDS = new Set(['label', 'hint', 'constraintMessage']);
 
 export interface FlattenResult {
   rows: SurveyRow[];

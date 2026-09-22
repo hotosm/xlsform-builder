@@ -1,7 +1,8 @@
-import { ref, toRaw } from 'vue';
+import { computed, ref, shallowRef, toRaw, watch } from 'vue';
 
 import { defineStore } from 'pinia';
 
+import { PALETTE_LABELS } from '@/constants/paletteItems';
 import type {
   Choice,
   FormSettings,
@@ -9,14 +10,40 @@ import type {
   XLSFormDocument,
   XLSFormType,
 } from '@/types/xlsform';
+import { formIdFromTitle } from '@/utils/fileUtils';
 import {
   findNode,
   findParent,
   insertNode,
   moveNode as moveNodeInTree,
+  nextAvailableName,
   removeNode as removeNodeInTree,
   updateNode as updateNodeInTree,
 } from '@/utils/tree';
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function nextLabelNumber(survey: SurveyNode[], prefix: string): number {
+  const used = new Set<number>();
+  const pattern = new RegExp(`^${escapeRegExp(prefix)} (\\d+)$`);
+
+  function walk(nodes: SurveyNode[]): void {
+    for (const node of nodes) {
+      if (typeof node.label === 'string') {
+        const match = pattern.exec(node.label);
+        if (match) used.add(Number(match[1]));
+      }
+      if (node.children) walk(node.children);
+    }
+  }
+
+  walk(survey);
+  let n = 1;
+  while (used.has(n)) n++;
+  return n;
+}
 
 const HISTORY_LIMIT = 50;
 
@@ -29,15 +56,66 @@ function emptyDocument(): XLSFormDocument {
   };
 }
 
-export function createNode(type: XLSFormType): SurveyNode {
+const DRAFT_STORAGE_KEY = 'xlsform-builder:draft:v1';
+const DRAFT_SAVE_DEBOUNCE_MS = 600;
+
+interface DraftEnvelope {
+  savedAt: number;
+  document: XLSFormDocument;
+}
+
+function withDerivedFormId(settings: FormSettings): FormSettings {
+  return { ...settings, formId: formIdFromTitle(settings.formTitle) };
+}
+
+function hasLocalStorage(): boolean {
+  return typeof localStorage !== 'undefined';
+}
+
+function isXLSFormDocument(value: unknown): value is XLSFormDocument {
+  if (!value || typeof value !== 'object') return false;
+  const doc = value as Partial<XLSFormDocument>;
+  return Array.isArray(doc.survey) && Array.isArray(doc.choices) && !!doc.settings;
+}
+
+function saveDraft(doc: XLSFormDocument): number | null {
+  if (!hasLocalStorage()) return null;
+  const savedAt = Date.now();
+  const envelope: DraftEnvelope = { savedAt, document: doc };
+  try {
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(envelope));
+    return savedAt;
+  } catch {
+    // Storage unavailable/full
+    return null;
+  }
+}
+
+function loadDraft(): DraftEnvelope | null {
+  if (!hasLocalStorage()) return null;
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<DraftEnvelope> | null;
+    if (!parsed || typeof parsed.savedAt !== 'number' || !isXLSFormDocument(parsed.document)) {
+      return null;
+    }
+    return parsed as DraftEnvelope;
+  } catch {
+    return null;
+  }
+}
+
+export function createNode(type: XLSFormType, survey: SurveyNode[] = []): SurveyNode {
   const id = crypto.randomUUID();
-  const name = `${type}_${id.slice(0, 8)}`;
+  const name = nextAvailableName(survey, type);
+  const friendlyLabel = PALETTE_LABELS[type] ?? type;
 
   const node: SurveyNode = {
     id,
     type,
     name,
-    label: 'New question',
+    label: `${friendlyLabel} ${nextLabelNumber(survey, friendlyLabel)}`,
   };
 
   if (type === 'group' || type === 'repeat') {
@@ -76,11 +154,56 @@ function setChildrenAt(
 export const useFormStore = defineStore('form', () => {
   const document = ref<XLSFormDocument>(emptyDocument());
   const selectedNodeId = ref<string | null>(null);
+  const lastSavedAt = ref<number | null>(null);
+  const draftSaveFailed = ref(false);
 
-  let past: XLSFormDocument[] = [];
-  let future: XLSFormDocument[] = [];
+  const restoredDraft = loadDraft();
+  if (restoredDraft) {
+    document.value = restoredDraft.document;
+    document.value.settings = withDerivedFormId(document.value.settings);
+    lastSavedAt.value = restoredDraft.savedAt;
+  }
+
+  const past = shallowRef<XLSFormDocument[]>([]);
+  const future = shallowRef<XLSFormDocument[]>([]);
   let batchDepth = 0;
   let batchSnapshot: XLSFormDocument | null = null;
+  let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function writeDraft(): void {
+    const savedAt = saveDraft(toRaw(document.value));
+    draftSaveFailed.value = savedAt === null;
+    if (savedAt !== null) lastSavedAt.value = savedAt;
+  }
+
+  function scheduleDraftSave(): void {
+    if (batchDepth > 0) return;
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      saveTimer = null;
+      writeDraft();
+    }, DRAFT_SAVE_DEBOUNCE_MS);
+  }
+
+  function flushDraftSave(): void {
+    if (!saveTimer) return;
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    writeDraft();
+  }
+
+  watch(
+    [
+      () => document.value.survey,
+      () => document.value.choices,
+      () => document.value.settings,
+      () => document.value.languages,
+    ],
+    scheduleDraftSave,
+  );
+
+  const canUndo = computed(() => past.value.length > 0);
+  const canRedo = computed(() => future.value.length > 0);
 
   function snapshot(doc: XLSFormDocument): XLSFormDocument {
     return structuredClone(toRaw(doc));
@@ -88,9 +211,8 @@ export const useFormStore = defineStore('form', () => {
 
   function pushHistory(): void {
     if (batchDepth > 0) return;
-    past.push(snapshot(document.value));
-    if (past.length > HISTORY_LIMIT) past.shift();
-    future = [];
+    past.value = [...past.value, snapshot(document.value)].slice(-HISTORY_LIMIT);
+    future.value = [];
   }
 
   function beginHistoryBatch(): void {
@@ -104,24 +226,29 @@ export const useFormStore = defineStore('form', () => {
     if (batchDepth === 0) return;
     batchDepth--;
     if (batchDepth === 0 && batchSnapshot) {
-      past.push(batchSnapshot);
-      if (past.length > HISTORY_LIMIT) past.shift();
-      future = [];
+      const changed = JSON.stringify(batchSnapshot) !== JSON.stringify(toRaw(document.value));
+      if (changed) {
+        past.value = [...past.value, batchSnapshot].slice(-HISTORY_LIMIT);
+        future.value = [];
+      }
       batchSnapshot = null;
     }
+    if (batchDepth === 0) scheduleDraftSave();
   }
 
   function undo(): void {
-    const prev = past.pop();
+    const prev = past.value[past.value.length - 1];
     if (!prev) return;
-    future.push(snapshot(document.value));
+    past.value = past.value.slice(0, -1);
+    future.value = [...future.value, snapshot(document.value)];
     document.value = prev;
   }
 
   function redo(): void {
-    const next = future.pop();
+    const next = future.value[future.value.length - 1];
     if (!next) return;
-    past.push(snapshot(document.value));
+    future.value = future.value.slice(0, -1);
+    past.value = [...past.value, snapshot(document.value)];
     document.value = next;
   }
 
@@ -131,7 +258,7 @@ export const useFormStore = defineStore('form', () => {
 
   function addNode(type: XLSFormType, parentId: string | null, index: number): SurveyNode {
     beginHistoryBatch();
-    const node = createNode(type);
+    const node = createNode(type, toRaw(document.value).survey);
     document.value.survey = insertNode(toRaw(document.value).survey, parentId, index, node);
     selectedNodeId.value = node.id;
     if (node.listName) {
@@ -204,10 +331,37 @@ export const useFormStore = defineStore('form', () => {
     document.value.survey = updateNodeInTree(toRaw(document.value).survey, nodeId, patch);
   }
 
-  function replaceChildren(parentId: string | null, children: SurveyNode[]): void {
-    if (parentId !== null && !findNode(document.value.survey, parentId)) return;
+  function isIdInSubtree(node: SurveyNode, id: string): boolean {
+    if (node.id === id) return true;
+    return node.children ? node.children.some((child) => isIdInSubtree(child, id)) : false;
+  }
+
+  function replaceChildren(parentId: string | null, children: SurveyNode[]): SurveyNode[] {
+    const current = toRaw(document.value).survey;
+    if (parentId !== null && !findNode(current, parentId)) return current;
+
+    const resolved = children.map(
+      (child) => findNode(current, child.id) ?? structuredClone(toRaw(child)),
+    );
+
+    if (parentId !== null && resolved.some((node) => isIdInSubtree(node, parentId))) {
+      return current;
+    }
+
+    let stripped = current;
+    for (const node of resolved) {
+      stripped = removeNodeInTree(stripped, node.id);
+    }
+
+    const result = setChildrenAt(stripped, parentId, resolved);
+
+    if (JSON.stringify(result) === JSON.stringify(current)) {
+      return current;
+    }
+
     pushHistory();
-    document.value.survey = setChildrenAt(toRaw(document.value).survey, parentId, toRaw(children));
+    document.value.survey = result;
+    return result;
   }
 
   function addChoiceList(listName: string): void {
@@ -234,6 +388,21 @@ export const useFormStore = defineStore('form', () => {
       : [...choices, { listName, choices: [newChoice] }];
   }
 
+  function updateChoice(listName: string, choiceName: string, patch: Partial<Choice>): void {
+    const choices = toRaw(document.value).choices;
+    const list = choices.find((l) => l.listName === listName);
+    if (!list || !list.choices.some((c) => c.name === choiceName)) return;
+    pushHistory();
+    document.value.choices = choices.map((l) =>
+      l.listName === listName
+        ? {
+            ...l,
+            choices: l.choices.map((c) => (c.name === choiceName ? { ...c, ...patch } : c)),
+          }
+        : l,
+    );
+  }
+
   function removeChoice(listName: string, choiceName: string): void {
     const choices = toRaw(document.value).choices;
     const list = choices.find((l) => l.listName === listName);
@@ -248,14 +417,23 @@ export const useFormStore = defineStore('form', () => {
 
   function updateSettings(patch: Partial<FormSettings>): void {
     pushHistory();
-    document.value.settings = { ...toRaw(document.value).settings, ...patch };
+    document.value.settings = withDerivedFormId({ ...toRaw(document.value).settings, ...patch });
+  }
+
+  function clearSurvey(): void {
+    const current = toRaw(document.value);
+    if (current.survey.length === 0 && current.choices.length === 0) return;
+    pushHistory();
+    document.value = { ...current, survey: [], choices: [] };
+    selectedNodeId.value = null;
   }
 
   function loadDocument(doc: XLSFormDocument): void {
     document.value = snapshot(doc);
+    document.value.settings = withDerivedFormId(document.value.settings);
     selectedNodeId.value = null;
-    past = [];
-    future = [];
+    past.value = [];
+    future.value = [];
     batchDepth = 0;
     batchSnapshot = null;
   }
@@ -263,6 +441,8 @@ export const useFormStore = defineStore('form', () => {
   return {
     document,
     selectedNodeId,
+    lastSavedAt,
+    draftSaveFailed,
     selectNode,
     addNode,
     moveNode,
@@ -275,11 +455,16 @@ export const useFormStore = defineStore('form', () => {
     replaceChildren,
     addChoiceList,
     addChoice,
+    updateChoice,
     removeChoice,
     updateSettings,
     loadDocument,
+    clearSurvey,
+    flushDraftSave,
     undo,
     redo,
+    canUndo,
+    canRedo,
     beginHistoryBatch,
     endHistoryBatch,
   };

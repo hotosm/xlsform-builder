@@ -18,3 +18,14 @@ export function generateUniqueFileName(title: string, originalFileName: string):
 export function generateFormId(): string {
   return crypto.randomUUID();
 }
+
+export function formIdFromTitle(title: string): string {
+  const id = title
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .substring(0, 50);
+  if (!id) return 'untitled_form';
+  return /^[0-9]/.test(id) ? `form_${id}` : id;
+}
