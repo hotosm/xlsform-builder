@@ -37,3 +37,6 @@ backend/tmp
 # Helm chart
 xlsform-builder-*.tgz
 llm_server/models/
+
+# Generated forms for manual upload to S3
+forms/
