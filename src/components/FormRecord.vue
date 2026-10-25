@@ -11,6 +11,11 @@ const props = defineProps<{
   tags: string[];
   url: string;
   external_link: string;
+  activeTag?: string;
+}>();
+
+const emit = defineEmits<{
+  'tag-click': [tag: string];
 }>();
 
 const xlsformViewerUrl = computed(() => {
@@ -95,9 +100,23 @@ async function previewForm() {
         <div v-if="tags.length > 0" class="tags-section">
           <span class="tags-label">Tags:</span>
           <div class="tags-container">
-            <wa-badge v-for="tag in tags" :key="tag" appearance="filled outlined" class="tag-badge">
-              {{ tag }}
-            </wa-badge>
+            <button
+              v-for="tag in tags"
+              :key="tag"
+              type="button"
+              class="tag-button"
+              :aria-pressed="tag.toLowerCase() === activeTag?.toLowerCase()"
+              :title="`Show forms tagged ${tag}`"
+              @click="emit('tag-click', tag)"
+            >
+              <wa-badge
+                appearance="filled outlined"
+                class="tag-badge"
+                :class="{ active: tag.toLowerCase() === activeTag?.toLowerCase() }"
+              >
+                {{ tag }}
+              </wa-badge>
+            </button>
           </div>
         </div>
 
@@ -172,8 +191,26 @@ async function previewForm() {
       color: $color-text-primary;
     }
 
-    .tag-badge {
+    .tag-button {
       margin-right: $spacing-sm;
+      padding: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+
+      &:hover .tag-badge {
+        opacity: 1;
+        text-decoration: underline;
+      }
+
+      &:focus-visible {
+        outline: 2px solid $color-primary;
+        outline-offset: 2px;
+        border-radius: $border-radius;
+      }
+    }
+
+    .tag-badge {
       border-color: transparent;
       background-color: $color-bg-surface;
       color: $color-text-primary;
@@ -182,6 +219,12 @@ async function previewForm() {
       border-radius: $border-radius;
       font-weight: $font-weight-normal;
       opacity: 0.9;
+
+      &.active {
+        background-color: $color-primary;
+        color: $color-neutral-50;
+        opacity: 1;
+      }
     }
 
     .card-actions {

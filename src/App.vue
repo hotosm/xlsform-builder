@@ -35,7 +35,8 @@ const drawerLinks = navItems.map((item) => ({
 const isMobile = isMobileDevice();
 
 // Handle routes
-const hashPath = () => window.location.hash.slice(1) || '/';
+// Ignore any query string (e.g. `#/?q=water` from the examples search)
+const hashPath = () => window.location.hash.slice(1).split('?')[0] || '/';
 const currentPath = ref(hashPath());
 
 window.addEventListener('hashchange', () => {
